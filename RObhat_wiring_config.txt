@@ -1,0 +1,62 @@
+* `SS1.1` -> `BlockA.2`
+* `SS1.2` -> `Common Neutral`
+* `SS1.3` -> `ArduinoD9`
+* `SS1.4` -> `GND`
+
+* `SS2.1` -> `Common Hot`
+* `SS2.2` -> `BlockA.4`
+* `SS2.3` -> `ArduinoD8`
+* `SS2.4` -> `GND`
+
+* `SS3.1` -> `BlockA.1`
+* `SS3.2` -> `Common Hot`
+* `SS3.3` -> `ArduinoD11`
+* `SS3.4` -> `GND`
+
+* `SS4.1` -> `BlockA.3`
+* `SS4.2` -> `Common Neutral`
+* `SS4.3` -> `ArduinoD12`
+* `SS4.4` -> `GND`
+
+* `SS5.A1` -> `Common Hot`
+* `SS5.A2` -> `BlockB.4`
+* `SS5.B1` -> `Common Neutral`
+* `SS5.B2` -> `BlockB.3`
+* `SS5.+ ` -> `ArduinoD5`
+* `SS5.CA` -> `GND`
+* `SS5.CB` -> `ArduinoD6`
+* `SS5.- ` -> `GND`
+
+* `SS6.A1` -> `Common Hot`
+* `SS6.A2` -> `BlockB.1`
+* `SS6.B1` -> `BlockB.2`
+* `SS6.B2` -> `Common Neutral`
+* `SS6.+ ` -> `ArduinoD3`
+* `SS6.CA` -> `GND`
+* `SS6.CB` -> `ArduinoD2`
+* `SS6.- ` -> `GND
+
+SS1 Controls = for AF (D9 HIGH = ON)
+SS2 Controls + for AF (D11 HIGH = ON)
+
+SS3 Controls + for AR (D8 HIGH = ON)
+SS4 Controls = for AR (D12 HIGH = ON)
+
+SS5.A channel controls + for BR (D5 HIGH = ON)
+SS5.B channel controls = for BR (D6 HIGH = ON)
+
+SS6.A channel controls + for BF (D3 HIGH = ON)
+SS6.B channel controls = for BF (D2 HIGH = ON)
+
+
+
+(#) means open pin
+
+(0),(1),2,3,4,5,6,7,8,9,10,11,12,13
+
+SS5 has two black wires
+
+buttonAF = 10  (GREEN)
+buttonAR = 13  (ORANGE)
+buttonBF = 4   (BLUE)
+buttonBR = 7   (RED)

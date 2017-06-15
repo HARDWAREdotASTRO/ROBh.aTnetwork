@@ -3,6 +3,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+*.pioenvs
+
+.gcc-flags.json
+.clang_complete
+
+
 # C extensions
 *.so
 
