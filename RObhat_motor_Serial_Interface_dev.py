@@ -57,7 +57,7 @@ def serialMonitor(con: Serial = con) -> None:
 def sendCommand(con: Serial = con, message: Text = "") -> None:
     """Send a message to the connection"""
     ensureConnected(con)
-    con.write(message.encode("ascii"))
+    con.write((message + "&").encode("ascii"))
 
 
 def get_input(con: Serial = con) -> None:
