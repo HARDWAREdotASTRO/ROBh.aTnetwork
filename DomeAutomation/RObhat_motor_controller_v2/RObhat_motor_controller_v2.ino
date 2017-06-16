@@ -1,7 +1,7 @@
 #include <Arduino.h>
 // #include <stdio.h>
 
-const int motorAF_neutral = 9;     // motor circuit is connected to pin 5
+const int motorAF_neutral = 9; // motor circuit is connected to pin 5
 const int motorAF_hot = 8;
 const int motorAR_neutral = 12; // motor circuit is connected to pin 5
 const int motorAR_hot = 11;
@@ -50,6 +50,8 @@ void setup(void) // initializes the sketch by defining variables and pin modes
         pinMode(buttonBR, INPUT_PULLUP); // input, shorting to ground pulls input
         // low, so "LOW" state is on
         Serial.begin(9600); // sets the data rate for the serial monitor tool
+        motorOff("A");
+        motorOff("B");
 }
 
 bool *
@@ -130,18 +132,20 @@ loop(void) {
         }
 
         // Serial monitor
-        if (Serial.available()) {
+        if (Serial.available())
+        {
                 String serialText =
                         Serial.readStringUntil('&'); // reads incoming data from the serial port
-                if (serialText == "onAF") // turn on A
-                {
-                        motorOn("A", "F");
+                if (serialText == "onAF") { // turn on A
+                        // motorOn("A", "F");
+                        buttonState[0] = LOW;
                         currentState[0] = LOW;
                         currentState[1] = HIGH;
                         Serial.println("Serial A: \t\t FWD");
-                } else if (serialText == "onAR") // turn on A
-                {
-                        motorOn("A", "R");
+                } else if (serialText == "onAR") { // turn on A
+
+                        // motorOn("A", "R");
+                        buttonState[1] = LOW;
                         currentState[1] = LOW;
                         currentState[0] = HIGH;
                         Serial.println("Serial A: \t\t REV");
@@ -150,16 +154,20 @@ loop(void) {
                         currentState[0] = HIGH;
                         currentState[1] = HIGH;
                         Serial.println("Serial A: \t\t OFF");
+                } else{
+                        Serial.println("Serial A: \t\t N/A");
                 }
-                if (serialText == "onBF") // turn on B
-                {
-                        motorOn("B", "F");
+
+                if (serialText == "onBF") { // turn on B
+                        // motorOn("B", "F");
+                        buttonState[2] = LOW;
                         currentState[2] = LOW;
                         currentState[3] = HIGH;
                         Serial.println("Serial B: \t\t FWD");
-                } else if (serialText == "onBR") // turn on B
-                {
-                        motorOn("B", "R");
+                } else if (serialText == "onBR") { // turn on B
+
+                        // motorOn("B", "R");
+                        buttonState[3] = LOW;
                         currentState[2] = HIGH;
                         currentState[3] = LOW;
                         Serial.println("Serial B: \t\t REV");
@@ -168,56 +176,42 @@ loop(void) {
                         currentState[2] = HIGH;
                         currentState[3] = HIGH;
                         Serial.println("Serial B: \t\t OFF");
+                }else{
+                        Serial.println("Serial B: \t\t N/A");
                 }
         }
 
-        if (buttonState[0] == LOW and not (buttonState[1] == LOW)) // 4
-        {
-                // Serial.println("A: \t\t FWD");
-                motorOn("A", "F");
-        } else if (buttonState[1] == LOW and not (buttonState[0] == LOW)) // 4
-        {
-                // Serial.println("A: \t\t REV");
-                motorOn("A", "R");
-        } else if (buttonState[0] == LOW and buttonState[1] == LOW and currentState[0] == LOW and not (currentState[1] == LOW)) // 1
-        {
-                buttonState[1] = HIGH;
-                // Serial.println("A: \t\t FWD");
-                motorOn("A", "F");
-        } else if (buttonState[0] == LOW and buttonState[1] == LOW and currentState[1] == LOW and not (currentState[0] == LOW)) // 1
-        {
-                buttonState[0] = HIGH;
-                // Serial.println("A: \t\t REV");
-                motorOn("A", "R");
-        } else // 4+1
-        {
-                // Serial.println("A: \t\t OFF");
-                // motorOff("A");
+        if (buttonState[0] == LOW) {
+                if (not (digitalRead(motorAR_hot) == HIGH or currentState[1] == LOW) or buttonState[1] == HIGH) {
+                        motorOn("A", "F");
+                }
         }
 
-        if (buttonState[2] == LOW and not (buttonState[3] == LOW)) // 4
-        {
-                // Serial.println("B: \t\t FWD");
-                motorOn("B", "F");
-        } else if (buttonState[3] == LOW and not (buttonState[2] == LOW)) // 4
-        {
-                // Serial.println("B: \t\t REV");
-                motorOn("B", "R");
-        } else if (buttonState[2] == LOW and buttonState[3] == LOW and currentState[2] == LOW and not (currentState[3] == LOW)) // 1
-        {
-                buttonState[3] = HIGH;
-                // Serial.println("B: \t\t FWD");
-                motorOn("B", "F");
-        } else if (buttonState[2] == LOW and buttonState[3] == LOW and currentState[3] == LOW and not (currentState[2] == LOW)) // 1
-        {
-                buttonState[2] = HIGH;
-                // Serial.println("B: \t\t REV");
-                motorOn("B", "R");
-        } else // 4+1
-        {
-                // Serial.println("B: \t\t OFF");
-                // motorOff("B");
+        if (buttonState[1] == LOW) {
+                if (not (digitalRead(motorAF_hot) == HIGH or currentState[0] == LOW) or buttonState[0] == HIGH ) {
+                        motorOn("A", "R");
+                }
+
         }
+        if (buttonState[0] == HIGH and buttonState[1] == HIGH) {
+                motorOff("A");
+        }
+        if (buttonState[2] == LOW) {
+                if (not (digitalRead(motorBR_hot) == HIGH or currentState[3] == LOW) or buttonState[3] == HIGH) {
+                        motorOn("B", "F");
+                }
+        }
+
+        if (buttonState[3] == LOW) {
+                if (not (digitalRead(motorBF_hot) == HIGH or currentState[2] == LOW) or buttonState[2] == HIGH ) {
+                        motorOn("B", "R");
+                }
+
+        }
+        if (buttonState[2] == HIGH and buttonState[3] == HIGH) {
+                motorOff("B");
+        }
+
 
         if (digitalRead(motorAF_hot) == HIGH) {
                 Serial.println("A: \t\t FWD");
@@ -237,8 +231,8 @@ loop(void) {
 
         Serial.println("===========================");
         delay(TIME);
-        motorOff("A");
-        motorOff("B");
+        // motorOff("A");
+        // motorOff("B");
         iters++;
         bool * currentState = buttonState;
 }
