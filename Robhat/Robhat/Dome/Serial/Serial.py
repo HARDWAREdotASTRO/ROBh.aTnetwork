@@ -50,12 +50,13 @@ def ensureConnected(con: Serial) -> bool:
 def serialMonitor(con: Serial) -> None:
     """Prints out the received serial text"""
     ensureConnected(con)
-    i = 0
+    # i = 0
     while True:
         try:
-            print(f"{i:0>5d} | \t" + con.readline().decode("ascii"))
-            i += 1
-            i %= 10**5
+            # print(f"{i:0>5d} | \t" + con.readline().decode("ascii"))
+            # i += 1
+            # i %= 10**5
+            print(con.readline().decode("ascii"))
         except:
             os.abort()
 

@@ -118,18 +118,18 @@ bool * currentState[4] = {
 
 void
 loop(void) {
-        Serial.print("Time: \t\t ");
-        Serial.print(iters * TIME / 1000);
-        Serial.println("s");
+        // Serial.print("Time: \t\t ");
+        // Serial.print(iters * TIME / 1000);
+        // Serial.println("s");
 
         // Below this is turning on output  based on push buttons
         bool * buttonState = getButtons();
-        for (int i = 0; i < 4; i++) {
-                Serial.print("Button ");
-                Serial.print(buttonLabels[i]);
-                Serial.print(":\t ");
-                Serial.println(!buttonState[i]);
-        }
+        // for (int i = 0; i < 4; i++) {
+        //         Serial.print("Button ");
+        //         Serial.print(buttonLabels[i]);
+        //         Serial.print(":\t ");
+        //         Serial.println(!buttonState[i]);
+        // }
 
         // Serial monitor
         if (Serial.available())
@@ -141,21 +141,21 @@ loop(void) {
                         buttonState[0] = LOW;
                         currentState[0] = LOW;
                         currentState[1] = HIGH;
-                        Serial.println("Serial A: \t\t FWD");
+                        // Serial.println("Serial A: \t\t FWD");
                 } else if (serialText == "onAR") { // turn on A
 
                         // motorOn("A", "R");
                         buttonState[1] = LOW;
                         currentState[1] = LOW;
                         currentState[0] = HIGH;
-                        Serial.println("Serial A: \t\t REV");
+                        // Serial.println("Serial A: \t\t REV");
                 } else if (serialText = "offA") {
                         motorOff("A");
                         currentState[0] = HIGH;
                         currentState[1] = HIGH;
-                        Serial.println("Serial A: \t\t OFF");
+                        // Serial.println("Serial A: \t\t OFF");
                 } else{
-                        Serial.println("Serial A: \t\t N/A");
+                        // Serial.println("Serial A: \t\t N/A");
                 }
 
                 if (serialText == "onBF") { // turn on B
@@ -163,22 +163,22 @@ loop(void) {
                         buttonState[2] = LOW;
                         currentState[2] = LOW;
                         currentState[3] = HIGH;
-                        Serial.println("Serial B: \t\t FWD");
+                        // Serial.println("Serial B: \t\t FWD");
                 } else if (serialText == "onBR") { // turn on B
 
                         // motorOn("B", "R");
                         buttonState[3] = LOW;
                         currentState[2] = HIGH;
                         currentState[3] = LOW;
-                        Serial.println("Serial B: \t\t REV");
+                        // Serial.println("Serial B: \t\t REV");
                 } else if (serialText = "offB") {
                         motorOff("B");
                         currentState[2] = HIGH;
                         currentState[3] = HIGH;
-                        Serial.println("Serial B: \t\t OFF");
+                        // Serial.println("Serial B: \t\t OFF");
                 }else{
                         Serial.println("Serial B: \t\t N/A");
-                }
+                // }
         }
 
         if (buttonState[0] == LOW) {
@@ -229,7 +229,7 @@ loop(void) {
                 Serial.println("B: \t\t OFF");
         }
 
-        Serial.println("===========================");
+        // Serial.println("===========================");
         delay(TIME);
         // motorOff("A");
         // motorOff("B");
