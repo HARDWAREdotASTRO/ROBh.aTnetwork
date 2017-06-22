@@ -177,8 +177,8 @@ loop(void) {
                         currentState[3] = HIGH;
                         // Serial.println("Serial B: \t\t OFF");
                 }else{
-                        Serial.println("Serial B: \t\t N/A");
-                // }
+                        // Serial.println("Serial B: \t\t N/A");
+                }
         }
 
         if (buttonState[0] == LOW) {
