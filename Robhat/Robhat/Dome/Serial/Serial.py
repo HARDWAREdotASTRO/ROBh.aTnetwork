@@ -56,9 +56,14 @@ def serialMonitor(con: Serial) -> None:
             # print(f"{i:0>5d} | \t" + con.readline().decode("ascii"))
             # i += 1
             # i %= 10**5
-            print(con.readline().decode("ascii"))
+            text = con.readline().decode("ascii")
+            try:
+                yield text
+            except:
+                pass
         except:
-            os.abort()
+            # os.abort()
+            pass
 
 
 def sendCommand(con: Serial, *rest, message: Text = "") -> None:

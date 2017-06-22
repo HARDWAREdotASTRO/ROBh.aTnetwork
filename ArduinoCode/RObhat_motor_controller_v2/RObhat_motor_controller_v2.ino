@@ -1,5 +1,5 @@
 #include <Arduino.h>
-// #include <stdio.h>
+#include <stdio.h>
 
 const int motorAF_neutral = 9; // motor circuit is connected to pin 5
 const int motorAF_hot = 8;
@@ -132,10 +132,9 @@ loop(void) {
         // }
 
         // Serial monitor
-        if (Serial.available())
+        // if (Serial.available())
         {
-                String serialText =
-                        Serial.readStringUntil('&'); // reads incoming data from the serial port
+                String serialText = Serial.readStringUntil('&'); // reads incoming data from the serial port
                 if (serialText == "onAF") { // turn on A
                         // motorOn("A", "F");
                         buttonState[0] = LOW;

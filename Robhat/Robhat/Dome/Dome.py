@@ -5,12 +5,14 @@ import threading
 import numpy as np
 import serial
 from toolz.curried import curry, get
-import appjar as aj
+import appJar as aj
 
 def motorStatusMonitor(app: aj.appjar.gui, con: serial.Serial)-> Dict[Text,Text]:
     try:
         Serial.ensureConnected(con)
-        t = {con.readline().decode("ascii").split(": \t\t ") for i in range(2)}
+        sm = Serial.serialMonitor(con)
+        t = [text.split(": \t\t ") for text,i in zip(sm, range(2))]
+        t = dict(t)
     except:
         t = {"A":"???","B":"???"}
     def inner():
