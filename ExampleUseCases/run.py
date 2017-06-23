@@ -3,16 +3,16 @@ import threading
 import os
 import serial
 
-Config = rob.Serial.readConfig(configFile="./.config")
-Port = Config["SerialPort"]
-PollTime = Config["PollTime"]
-BaudRate = Config["BaudRate"]
+#Config = rob.Serial.readConfig(configFile="./.config")
+#Port = Config["SerialPort"]
+#PollTime = Config["PollTime"]
+#BaudRate = Config["BaudRate"]
 
-con = rob.Serial.openConnection(
-    port=Port,
-    baudRate=BaudRate,
-    timeout=PollTime / 1000)
-# con=serial.Serial()
+#con = rob.Serial.openConnection(
+#    port=Port,
+#    baudRate=BaudRate,
+#    timeout=PollTime / 1000)
+con=serial.Serial()
 # print(dict(Config))
 
 
