@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <stdio.h>
+// #include <stdio.h>
 
 const int motorAF_neutral = 9; // motor circuit is connected to pin 5
 const int motorAF_hot = 8;
@@ -124,17 +124,18 @@ loop(void) {
 
         // Below this is turning on output  based on push buttons
         bool * buttonState = getButtons();
-        // for (int i = 0; i < 4; i++) {
-        //         Serial.print("Button ");
-        //         Serial.print(buttonLabels[i]);
-        //         Serial.print(":\t ");
-        //         Serial.println(!buttonState[i]);
-        // }
+        for (int i = 0; i < 4; i++) {
+                Serial.print("Button ");
+                Serial.print(buttonLabels[i]);
+                Serial.print(":\t ");
+                Serial.println(!buttonState[i]);
+        }
 
         // Serial monitor
-        // if (Serial.available())
+        if (Serial.available())
         {
-                String serialText = Serial.readStringUntil('&'); // reads incoming data from the serial port
+                String serialText =
+                        Serial.readStringUntil('&'); // reads incoming data from the serial port
                 if (serialText == "onAF") { // turn on A
                         // motorOn("A", "F");
                         buttonState[0] = LOW;
