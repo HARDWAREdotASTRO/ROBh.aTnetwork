@@ -1,4 +1,4 @@
-from . import Serial, UI
+from . import Serial, UI, Macros
 from typing import Dict, Text, Any, List, Tuple, Callable, Union, NewType
 import os
 import threading

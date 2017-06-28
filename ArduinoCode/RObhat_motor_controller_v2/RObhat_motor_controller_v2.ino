@@ -1,4 +1,4 @@
-#include <Arduino.h>
+//#include <Arduino.h>
 // #include <stdio.h>
 
 const int motorAF_neutral = 9; // motor circuit is connected to pin 5
@@ -31,31 +31,8 @@ const char * buttonLabels[] = {
 
 const int TIME = 1 * 1000; // testing for how long to keep motors on for
 
-void setup(void) // initializes the sketch by defining variables and pin modes
-{
-        pinMode(motorAF_neutral, OUTPUT);
-        pinMode(motorAF_hot, OUTPUT);
-        pinMode(motorAR_neutral, OUTPUT);
-        pinMode(motorAR_hot, OUTPUT);
-        pinMode(motorBF_neutral, OUTPUT);
-        pinMode(motorBF_hot, OUTPUT);
-        pinMode(motorBR_neutral, OUTPUT);
-        pinMode(motorBR_hot, OUTPUT);
-        pinMode(buttonAF, INPUT_PULLUP); // input, shorting to ground pulls input
-        // low, so "LOW" state is on
-        pinMode(buttonAR, INPUT_PULLUP); // input, shorting to ground pulls input
-        // low, so "LOW" state is on
-        pinMode(buttonBF, INPUT_PULLUP); // input, shorting to ground pulls input
-        // low, so "LOW" state is on
-        pinMode(buttonBR, INPUT_PULLUP); // input, shorting to ground pulls input
-        // low, so "LOW" state is on
-        Serial.begin(9600); // sets the data rate for the serial monitor tool
-        motorOff("A");
-        motorOff("B");
-}
 
-bool *
-getButtons(void) {
+bool * getButtons() {
         bool states[4];
         for (int i = 0; i < 4; i++) {
                 states[i] = digitalRead(buttons[i]);
@@ -63,8 +40,7 @@ getButtons(void) {
         return states;
 }
 
-void
-motorOff(const char * motor) {
+void motorOff(const char * motor) {
         if (motor == "A") {
                 digitalWrite(motorAF_neutral, LOW);
                 digitalWrite(motorAF_hot, LOW);
@@ -78,8 +54,7 @@ motorOff(const char * motor) {
         }
 }
 
-void
-motorOn(const char * motor,
+void motorOn(const char * motor,
         const char * dir) {
         if (motor == "A") {
                 if (dir == "F") {
@@ -108,6 +83,31 @@ motorOn(const char * motor,
         }
 }
 
+
+void setup(){ // initializes the sketch by defining variables and pin modes
+
+        pinMode(motorAF_neutral, OUTPUT);
+        pinMode(motorAF_hot, OUTPUT);
+        pinMode(motorAR_neutral, OUTPUT);
+        pinMode(motorAR_hot, OUTPUT);
+        pinMode(motorBF_neutral, OUTPUT);
+        pinMode(motorBF_hot, OUTPUT);
+        pinMode(motorBR_neutral, OUTPUT);
+        pinMode(motorBR_hot, OUTPUT);
+        pinMode(buttonAF, INPUT_PULLUP); // input, shorting to ground pulls input
+        // low, so "LOW" state is on
+        pinMode(buttonAR, INPUT_PULLUP); // input, shorting to ground pulls input
+        // low, so "LOW" state is on
+        pinMode(buttonBF, INPUT_PULLUP); // input, shorting to ground pulls input
+        // low, so "LOW" state is on
+        pinMode(buttonBR, INPUT_PULLUP); // input, shorting to ground pulls input
+        // low, so "LOW" state is on
+        Serial.begin(9600); // sets the data rate for the serial monitor tool
+        motorOff("A");
+        motorOff("B");
+}
+
+
 long iters = 0;
 bool * currentState[4] = {
         HIGH,
@@ -117,7 +117,7 @@ bool * currentState[4] = {
 };
 
 void
-loop(void) {
+loop() {
         // Serial.print("Time: \t\t ");
         // Serial.print(iters * TIME / 1000);
         // Serial.println("s");
