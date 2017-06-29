@@ -55,7 +55,7 @@ void motorOff(const char * motor) {
 }
 
 void motorOn(const char * motor,
-        const char * dir) {
+             const char * dir) {
         if (motor == "A") {
                 if (dir == "F") {
                         digitalWrite(motorAR_neutral, LOW);
