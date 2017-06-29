@@ -102,7 +102,7 @@ void setup(){ // initializes the sketch by defining variables and pin modes
         // low, so "LOW" state is on
         pinMode(buttonBR, INPUT_PULLUP); // input, shorting to ground pulls input
         // low, so "LOW" state is on
-        Serial.begin(9600); // sets the data rate for the serial monitor tool
+        Serial.begin(115200); // sets the data rate for the serial monitor tool
         motorOff("A");
         motorOff("B");
 }

@@ -58,6 +58,7 @@ if not sys.platform.startswith('win32'):
 def setup(board):
     global pins
     global buttons
+    global TIME
     for name,(pinNumber, pinMode) in pins.items():
         if pinMode not in [INPUT, INPUT_PULLUP]:
             board.set_pin_mode(pinNumber, pinMode)
@@ -65,6 +66,8 @@ def setup(board):
         else:
             board.set_pin_mode(pinNumber, pinMode)
             board.digital_write(pinNumber, 1)
+    board.set_sampling_interval(TIME*1000) #requires milliseconds
+    board.keep_alive()
 
 
 def getButtons(board):
