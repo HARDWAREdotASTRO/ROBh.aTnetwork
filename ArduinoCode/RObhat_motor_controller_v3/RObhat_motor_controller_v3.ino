@@ -1,8 +1,6 @@
-
-
-//#include <Arduino.h>
+#include <Arduino.h>
 #include <CmdMessenger.h>
-#include <SoftwareSerial.h>
+// #include <SoftwareSerial.h>
 
 unsigned long thisCycleStart = 0;
 const int motorAF_neutral = 9; // motor circuit is connected to pin 5
@@ -33,11 +31,11 @@ const char * buttonLabels[] = {
         "BR"
 };
 
-long iters = 0;
+unsigned long iters = 0;
 
-bool * currentState[] = {LOW, LOW, LOW, LOW};
+bool* currentState[] = {LOW, LOW, LOW, LOW};
 
-bool buttonState[4] = {HIGH, HIGH, HIGH, HIGH};
+bool* buttonState[] = {HIGH, HIGH, HIGH, HIGH};
 
 const int TIME = 1 * 1000; // testing for how long to keep motors on for
 int motorATime = TIME;
@@ -97,44 +95,45 @@ enum {
         MotorOn,
         MotorOff,
         Status,
-        kAcknowledge,
-        kError
+        kAck,
+        kError,
+        kLogging
 };
 
-void attatchCommandCallbacks(){
-        cmdMessenger.attach(CommandUnknown);
-        cmdMessenger.attach(MotorOff, CommandMotorOff);
-        cmdMessenger.attach(MotorOn, CommandMotorOn);
-        cmdMessenger.attach(Status, CommandStatus);
-}
+
 
 void CommandUnknown(){
         cmdMessenger.sendCmd(kError, "Command Unknown");
 }
 
 void OnReady(){
-        cmdMessenger.sendCmd(kAcknowledge, "Ready");
+        cmdMessenger.sendCmd(kLogging, "Ready");
 }
 
 void CommandMotorOff(){
         char * motor = cmdMessenger.readStringArg();
         motorOff(motor);
+        cmdMessenger.sendCmdStart(kAck);
+        cmdMessenger.sendCmdArg(motor);
+        cmdMessenger.sendCmdArg("OFF");
+        cmdMessenger.sendCmdEnd();
 }
 
 void CommandMotorOn(){
-        int delayTime = TIME;
+        //Must send the following information:
+        // Motor: "A" or "B"
+        // Direction: "F" or "R"
+        // Time: int > 0
         char * motor = cmdMessenger.readStringArg();
         char * dir = cmdMessenger.readStringArg();
-
-        if (cmdMessenger.available()) {delayTime = cmdMessenger.readBinArg<int>();}
-
+        int delayTime = cmdMessenger.readBinArg<int>();
+        if (delayTime <= 0) {int delayTime = 1;}
         if (motor == "A" and dir =="F") { // turn on A
                 buttonState[0] = LOW;
                 currentState[0] = LOW;
                 currentState[1] = HIGH;
                 motorATime = delayTime;
         }
-        else{}
 
         if (motor == "A" and dir =="R") { // turn on A
                 buttonState[1] = LOW;
@@ -156,19 +155,16 @@ void CommandMotorOn(){
                 currentState[3] = LOW;
                 motorBTime = delayTime;
         }
+        cmdMessenger.sendCmdStart(kAck);
+        cmdMessenger.sendCmdArg(motor);
+        cmdMessenger.sendCmdArg(dir);
+        cmdMessenger.sendCmdArg(String(delayTime));
+        cmdMessenger.sendCmdEnd();
 }
 
-
-bool * getButtons() {
-        bool states[] = {HIGH, HIGH, HIGH, HIGH};
-        for (int i = 0; i < 4; i++) {
-                states[i] = digitalRead(buttons[i]);
-        }
-        return states;
-}
 
 void CommandStatus(){
-        cmdMessenger.sendCmdStart("Status");
+        cmdMessenger.sendCmdStart(kAck);
 
         cmdMessenger.sendCmdArg("A");
         if (digitalRead(motorAF_hot) == HIGH) {
@@ -196,6 +192,12 @@ bool cycleTimer(unsigned long &prevTime, unsigned long interval){
         else {return false;}
 }
 
+void attatchCommandCallbacks(){
+        cmdMessenger.attach(CommandUnknown);
+        cmdMessenger.attach(MotorOff, CommandMotorOff);
+        cmdMessenger.attach(MotorOn, CommandMotorOn);
+        cmdMessenger.attach(Status, CommandStatus);
+}
 
 void setup(){// initializes the sketch by defining variables and pin modes
 
@@ -222,7 +224,16 @@ void setup(){// initializes the sketch by defining variables and pin modes
         //
         // motorOff("A");
         // motorOff("B");
-        cmdMessenger.sendCmd(kAcknowledge, "Arduino Started");
+        cmdMessenger.sendCmd(kLogging, "Arduino Initialized");
+}
+
+void buttonLog(){
+        cmdMessenger.sendCmdStart(kLogging);
+        for (int i = 0; i < 4; i++) {
+                cmdMessenger.sendCmdArg(buttonLabels[i]);
+                cmdMessenger.sendCmdArg(String(!buttonState[i]));
+        }
+        cmdMessenger.sendCmdEnd();
 }
 
 void loop() {
@@ -231,24 +242,25 @@ void loop() {
         // Serial.println("s");
         thisCycleStart = millis();
         // Below this is turning on output  based on push buttons
-        bool * buttonState = getButtons();
+
+        for (int i = 0; i < 4; i++) {
+                buttonState[i] = digitalRead(buttons[i]);
+        }
+
+
+        // cmdMessenger.sendCmd(kLogging, "Start Reading");
+        cmdMessenger.feedinSerialData();
+        // cmdMessenger.sendCmd(kLogging, "Done Reading");
+
         // for (int i = 0; i < 4; i++) {
         //         Serial.print("Button ");
         //         Serial.print(buttonLabels[i]);
         //         Serial.print(":\t ");
         //         Serial.println(!buttonState[i]);
+        //         // !buttonState[i];
         // }
 
-        // cmdMessenger.sendCmd(kAcknowledge, "Start Reading");
-        cmdMessenger.feedinSerialData();
-        // cmdMessenger.sendCmd(kAcknowledge, "Done Reading");
-        for (int i = 0; i < 4; i++) {
-                Serial.print("Button ");
-                Serial.print(buttonLabels[i]);
-                Serial.print(":\t ");
-                Serial.println(!buttonState[i]);
-                // !buttonState[i];
-        }
+        // buttonLog();
 
         if (buttonState[0] == LOW) {
                 if (not (digitalRead(motorAR_hot) == HIGH or currentState[1] == LOW) or buttonState[1] == HIGH) {
@@ -280,47 +292,34 @@ void loop() {
         if (buttonState[2] == HIGH and buttonState[3] == HIGH) {
                 motorOff("B");
         }
-        CommandStatus();
-        //
-        // if (digitalRead(motorAF_hot) == HIGH) {
-        //         Serial.println("A: \t\t FWD");
-        // } else if (digitalRead(motorAR_hot) == HIGH) {
-        //         Serial.println("A: \t\t REV");
-        // } else {
-        //         Serial.println("A: \t\t OFF");
-        // }
-        //
-        // if (digitalRead(motorBF_hot) == HIGH) {
-        //         Serial.println("B: \t\t FWD");
-        // } else if (digitalRead(motorBR_hot) == HIGH) {
-        //         Serial.println("B: \t\t REV");
-        // } else {
-        //         Serial.println("B: \t\t OFF");
-        // }
 
-        // Serial.println("===========================");
+        // CommandStatus();
+
         // delay(TIME);
-        // motorOff("A");
-        // motorOff("B");
 
         if (cycleTimer(thisCycleStart, TIME)) {
-                // Serial.println("End of Loop (regular timings)");
+                // cmdMessenger.sendCmd(kLogging, "End of Loop (regular timings)");
                 iters++;
-                bool * currentState = buttonState;
+                for (int i=0; i<4; i++) {
+                        *currentState[i] = buttonState[i];
+                }
         } else{
                 int j = 0;
                 do {j++; delay(1);} while (!cycleTimer(thisCycleStart, TIME));
-                // Serial.print("End of Loop (had to wait for ");
-                // Serial.print(j);
-                // Serial.println(" ms)");
+                // cmdMessenger.sendCmdStart(kLogging);
+                // cmdMessenger.sendCmdArg("End of Loop, had to wait");
+                // cmdMessenger.sendCmdArg(String(j));
+                // cmdMessenger.sendCmdArg("ms");
+                // cmdMessenger.sendCmdEnd();
                 iters++;
-                bool * currentState = buttonState;
+                for (int i=0; i<4; i++) {
+                        *currentState[i] = buttonState[i];
+                }
         }
-        // Serial.println("End of Loop");
-        // iters++;
-        // bool * currentState = buttonState;
 
         // motorOff("A");
         // motorOff("B");
+        motorATime = TIME;
+        motorBTime = TIME;
 
 }

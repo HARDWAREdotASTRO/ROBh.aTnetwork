@@ -1,4 +1,4 @@
-from . import Serial, UI, Dome
+from Robhat.Dome import *
 from typing import Dict, Text, Any, List, Tuple, Callable, Union, NewType
 import os
 import threading

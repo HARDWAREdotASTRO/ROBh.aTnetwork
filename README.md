@@ -17,4 +17,28 @@ To install this package:
 
 Example use case is given in `ExampleUseCases/run.py`
 
+
+### Style Guide for Contributors:
+#### Python:
+* Follow PEP8
+* Use Python 3.6
+* Use PEP484 Type Hints for ALL functions
+* All functions **must** have a docstring
+* Spacing: **Four Spaces**. Just use spaces.
+* Variables and functions are named in `camelCase`
+* Classes, Modules, etc. are named with `UpperCamelCase`
+* Important constants should be in `CAPS_WITH_UNDERSCORES`
+
+#### Arduino:
+* All files must be useable with both ArduinoIDE and PlatformIO
+* Declare constants with `const`
+* Declare constants before functions
+* All timers should work in millisecond units
+* Naming as in Python
+
+#### User Interface:
+* Use [Google's Material Color Palette](https://material.io/guidelines/style/color.html)
+* Big buttons preferred (touch screens)
+* Tabbed displays are preferable to scrolling displays
+
 ![Picture of Current UI](https://raw.githubusercontent.com/HARDWAREdotASTRO/ROBh.aTnetwork/master/temp_UI.PNG)

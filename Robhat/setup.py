@@ -17,9 +17,10 @@ setup(
         "toolz",
         "pyserial",
         "appJar",
+        "PyCmdMessenger",
     ],
     python_requires='>=3.6',
     long_description=readme(),
-    packages=["Robhat", "Robhat.Dome", "Robhat.Dome.UI", "Robhat.Dome.Serial"],
+    packages=["Robhat", "Robhat.Dome", "Robhat.Dome.UI", "Robhat.Dome.Control", "Robhat.Dome.Macros"],
     include_package_data=True,
 )

@@ -1,7 +1,7 @@
 import serial
 from serial import Serial, SerialException
 from toolz.curried import filter, get, map, reduce
-
+import PyCmdMessenger as cmd
 from time import sleep
 import os
 import threading

@@ -1,6 +1,7 @@
-# __all__ = ["Dome", "UI", "Serial", "Macros"]
+# __all__ = ["Dome", "UI", "Control", "Macros"]
 # from .UI import *
-# from .Serial import *
+# from .Constrol import *
 from .Dome import *
 from . import UI
-from . import Serial
+from . import Control
+from . import Macros

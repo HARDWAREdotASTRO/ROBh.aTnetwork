@@ -1,33 +1,46 @@
-import Robhat.Dome as rob
+import Robhat.Dome as Dome
 import threading
 import os
-import serial
+import sys
+# import signal
 
-#Config = rob.Serial.readConfig(configFile="./.config")
-#Port = Config["SerialPort"]
-#PollTime = Config["PollTime"]
-#BaudRate = Config["BaudRate"]
+global Portglobal
+global PollTime
+global BaudRate
+global arduino
+global _signal_handler
 
-#con = rob.Serial.openConnection(
-#    port=Port,
-#    baudRate=BaudRate,
-#    timeout=PollTime / 1000)
-con=serial.Serial()
+Config = Dome.Control.readConfig(configFile="./.config")
+Port = Config["SerialPort"]
+PollTime = Config["PollTime"]
+BaudRate = Config["BaudRate"]
+
+
 # print(dict(Config))
 
+# def signalHandlerGenerator(board):
+#     def _signal_handler(sig, frame):
+#         nonlocal board
+#         if board is not None:
+#             board.close()
+#             print("\nYou pressed Ctrl+C")
+#             sys.exit(1)
+#     return _signal_handler
+# _signal_handler = signalHandlerGenerator(arduino)
+# signal.signal(signal.SIGINT, _signal_handler)
+# signal.signal(signal.SIGTERM, _signal_handler)
+# if not sys.platform.startswith('win32'):
+#     signal.signal(signal.SIGALRM, _signal_handler)
 
-def Term(): return rob.Serial.startTerminal(con)
-
-
-TermThread = threading.Thread(name="Terminal", target=Term, args=tuple())
-UIThread = threading.Thread(name="UI", target=rob.demo, args=(con,))
 
 try:
-    TermThread.setDaemon(True)
-    UIThread.setDaemon(True)
-    TermThread.start()
-    UIThread.start()
-    TermThread.join()
-    UIThread.join()
-except BaseException:
-    os.abort()
+    arduino = Dome.Control.startBoard(Port, BaudRate, dtr=False)
+    messenger = Dome.Control.startMessenger(arduino, Dome.Control.COMMANDS)
+
+    Dome.demo(arduino, messenger, MotorDefaultTime=PollTime)
+except RuntimeError:
+    arduino.close()
+    sys.exit(0)
+except KeyboardInterrupt:
+    arduino.close()
+    sys.exit(0)
