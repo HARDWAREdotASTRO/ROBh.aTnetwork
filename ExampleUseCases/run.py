@@ -10,7 +10,7 @@ global BaudRate
 global arduino
 global _signal_handler
 
-Config = Dome.Control.readConfig(configFile="./.config")
+Config = Dome.readConfig(configFile="./.config")
 Port = Config["SerialPort"]
 PollTime = Config["PollTime"]
 BaudRate = Config["BaudRate"]
@@ -32,15 +32,29 @@ BaudRate = Config["BaudRate"]
 # if not sys.platform.startswith('win32'):
 #     signal.signal(signal.SIGALRM, _signal_handler)
 
-
-try:
-    arduino = Dome.Control.startBoard(Port, BaudRate, dtr=False)
+def messagingConstructor(port, baudrate):
+    global arduino
+    arduino = Dome.Control.startBoard(port, baudrate, dtr=False)
+    global messenger
     messenger = Dome.Control.startMessenger(arduino, Dome.Control.COMMANDS)
 
-    Dome.demo(arduino, messenger, MotorDefaultTime=PollTime)
+
+
+
+try:
+
+    MessagingThread = threading.Thread(name="Messenger", target=messagingConstructor, args=(Port, BaudRate))
+    UIThread = threading.Thread(name="UI", target=Dome.demo, args=(arduino, messenger), kwargs={"MotorDefaultTime":PollTime}, daemon=True)
+    MessagingThread.start()
+    UIThread.start()
+    MessagingThread.join()
+    UIThread.join()
 except RuntimeError:
     arduino.close()
     sys.exit(0)
 except KeyboardInterrupt:
+    arduino.close()
+    sys.exit(0)
+except BaseException:
     arduino.close()
     sys.exit(0)
