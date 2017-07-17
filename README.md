@@ -28,6 +28,7 @@ Example use case is given in `ExampleUseCases/run.py`
 * Variables and functions are named in `camelCase`
 * Classes, Modules, etc. are named with `UpperCamelCase`
 * Important constants should be in `CAPS_WITH_UNDERSCORES`
+* Keyword-only arguments **must** be after `*rest`
 
 #### Arduino:
 * All files must be useable with both ArduinoIDE and PlatformIO

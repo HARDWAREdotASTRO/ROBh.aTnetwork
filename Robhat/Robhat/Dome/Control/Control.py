@@ -20,20 +20,6 @@ COMMANDS = [["MotorOn","ssi"],
             ["kLogging", "s*"]]
 
 
-
-
-def readConfig(configFile: Text = "./.config") -> Dict[Text, Any]:
-    """
-    Reads a configuration file.
-    """
-    config = configparser.ConfigParser()
-    config.read(configFile)
-    settings = dict()
-    settings["SerialPort"] = config["DEFAULT"]["SerialPort"]
-    settings["PollTime"] = int(config["DEFAULT"]["PollTime"])
-    settings["BaudRate"] = int(config["DEFAULT"]["BaudRate"])
-    return settings
-
 def startBoard(port: Text, baud: int = 9600, *args, dtr: bool = False) ->  cmd.arduino.ArduinoBoard:
     """Starts up a connection to the Arduino Board, it's basically a wrapper around a PySerial instance"""
     return cmd.ArduinoBoard(port, baud_rate=baud, enable_dtr=dtr)
@@ -75,7 +61,7 @@ def serialMonitor(board: cmd.arduino.ArduinoBoard) -> None:
             # os.abort()
             pass
 
-def listen(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: Text, *rest, tries: int = 250) -> Any:
+async def listen(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: Text, *rest, tries: int = 250) -> Any:
     """ Listens for a specific type of response message"""
     try:
         assert any([messageIdentifier in command for command in Messenger.commands])
@@ -90,16 +76,16 @@ def listen(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: Text, 
             else:
                 continue
 
-def getLogs(Messenger: cmd.PyCmdMessenger.CmdMessenger) -> Text:
-    """Yields the logs from the CmdMessenger"""
-    while True:
-        yield listen(Messenger, "kLogging")
+# def getLogs(Messenger: cmd.PyCmdMessenger.CmdMessenger) -> Text:
+#     """Yields the logs from the CmdMessenger"""
+#     while True:
+#         yield from listen(Messenger, "kLogging")
 
-def sendCommand(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier, *args) -> Any:
+async def sendCommand(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: Text, *args) -> Any:
     """Sends a command and returns the response"""
     Messenger.send(messageIdentifier, *args)
     if messageIdentifier in [command for command in Messenger.commands]:
-        response = listen(Messenger, "kAcknowledge")
+        response = await listen(Messenger, "kAck")
     else:
-        response = listen(Messenger, "kError")
+        response = await listen(Messenger, "kError")
     return response
