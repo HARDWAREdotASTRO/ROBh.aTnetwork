@@ -24,8 +24,8 @@ def readConfig(configFile: Text = "./.config") -> Dict[Text, Any]:
     return settings
 
 
-def motorStatusMonitor(loop: aio.AbstractEventLoop, app: aj.appjar.gui, Messenger: cmd.PyCmdMessenger.CmdMessenger)-> Callable:
-    async def getStatus(aFuture):
+def motorStatusMonitor(app: aj.appjar.gui, Messenger: cmd.PyCmdMessenger.CmdMessenger)-> Callable:
+    def getStatus():
         nonlocal Messenger
         nonlocal app
         # Ask for the current status of the motor
@@ -37,19 +37,14 @@ def motorStatusMonitor(loop: aio.AbstractEventLoop, app: aj.appjar.gui, Messenge
             app.openTab("Main", "Control")
             app.openLabelFrame("Status")
             app.setLabel("motorStatus", f"Motor A: \t\t {get('A', d, '???')}\nMotor B: \t\t {get('B', d, '???')}") # Print the status of the motors to the app
-        aFuture.set_result(statusChanger)
+        return statusChanger
 
-    future = aio.Future()
-    aio.ensure_future(getStatus(future))
-    loop.run_until_complete(future)
-    return future.result()
+    return getStatus()
 
 
 
 def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMessenger, *rest, MotorDefaultTime=1000, fullscreen=False) -> None:
     """Demo"""
-    global event_loop
-    event_loop = aio.get_event_loop()
 
     app = UI.makeUI(size=(720, 480))
     app.setPollTime(ceil(MotorDefaultTime/1000)) #AppJar uses seconds as its time, so divide by 1000 and get the ceil of it (longer poll times preferred to shorter ones.)
@@ -69,10 +64,10 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
     print("making status panel")
     app.addLabel("motorStatus", "Motor A: \t\t ??? \nMotor B: \t\t ???", 0, 0)
 
-    async def offBoth() -> None: # define a local function to turn off both motors
-        _0 = await Control.sendCommand(Messenger, "MotorOff", "A")
+    def offBoth() -> None: # define a local function to turn off both motors
+        _0 = Control.sendCommand(Messenger, "MotorOff", "A")
         del _0
-        _1 = await Control.sendCommand(Messenger, "MotorOff", "B")
+        _1 = Control.sendCommand(Messenger, "MotorOff", "B")
         del _1
 
     app.addButton( # make me a button that turns off the motors!
@@ -85,10 +80,10 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
     print("making A")
     app.setSticky("nesw")
     app.setStretch("both")
-    app.addButton("onAF", lambda *a: event_loop.run_until_complete(Control.sendCommand(Messenger, "MotorOn", "A", "F", MotorDefaultTime), 0, 0))
-    app.addButton("onAR", lambda *a: event_loop.run_until_complete(Control.sendCommand(Messenger, "MotorOn", "A", "R", MotorDefaultTime), 0, 1))
+    app.addButton("onAF", lambda *a: Control.sendCommand(Messenger, "MotorOn", "A", "F", MotorDefaultTime), 0, 0)
+    app.addButton("onAR", lambda *a: Control.sendCommand(Messenger, "MotorOn", "A", "R", MotorDefaultTime), 0, 1)
     app.addButton("offA",
-                        lambda *a: event_loop.run_until_complete(Control.sendCommand(Messenger, "MotorOff", "A")),
+                        lambda *a: Control.sendCommand(Messenger, "MotorOff", "A"),
                         1, 0, colspan=2, rowspan=1)
 
     app.stopLabelFrame()
@@ -97,10 +92,10 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
     print("making B")
     app.setSticky("nesw")
     app.setStretch("both")
-    app.addButton("onBF", lambda *a: event_loop.run_until_complete(Control.sendCommand(Messenger, "MotorOn", "B", "F", MotorDefaultTime)), 0, 0)
-    app.addButton("onBR", lambda *a: event_loop.run_until_complete(Control.sendCommand(Messenger, "MotorOn", "B", "R", MotorDefaultTime)), 0, 1)
+    app.addButton("onBF", lambda *a: Control.sendCommand(Messenger, "MotorOn", "B", "F", MotorDefaultTime), 0, 0)
+    app.addButton("onBR", lambda *a: Control.sendCommand(Messenger, "MotorOn", "B", "R", MotorDefaultTime), 0, 1)
     app.addButton("offB",
-                        lambda *a: event_loop.run_until_complete(Control.sendCommand(Messenger, "MotorOff", "B")),
+                        lambda *a: Control.sendCommand(Messenger, "MotorOff", "B"),
                         1, 0, colspan=2, rowspan=1)
 
     app.stopLabelFrame()
@@ -121,16 +116,13 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
     app.stopTab()
     app.stopTabbedFrame()
     print("Registering Events")
-    app.registerEvent(motorStatusMonitor(event_loop, app, Messenger)) #listen for the status changes
+    # app.registerEvent(motorStatusMonitor(app, Messenger)) #listen for the status changes
     app.registerEvent(lambda: UI.colorMode(app, "colorMode")) #Listen for changes to the colormode buttons
-    def _close():
+    def _close(app, arduino):
         res = app.yesNoBox("Confirm Exit", "Are you sure you want to exit?")
         if res:
             arduino.close()
-            event_loop.run_until_complete(event_loop.shutdown_asyncgens())
-            event_loop.close()
         return res
-    app.setStopFunction(_close)
-    # event_loop.run_forever()
-    app.go()
+    app.setStopFunction(lambda *a: _close(app, board))
     print("app is alive")
+    app.go()

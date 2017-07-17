@@ -61,7 +61,7 @@ def serialMonitor(board: cmd.arduino.ArduinoBoard) -> None:
             # os.abort()
             pass
 
-async def listen(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: Text, *rest, tries: int = 250) -> Any:
+def listen(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: Text, *rest, tries: int = 250) -> Any:
     """ Listens for a specific type of response message"""
     try:
         assert any([messageIdentifier in command for command in Messenger.commands])
@@ -81,11 +81,11 @@ async def listen(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: 
 #     while True:
 #         yield from listen(Messenger, "kLogging")
 
-async def sendCommand(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: Text, *args) -> Any:
+def sendCommand(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: Text, *args) -> Any:
     """Sends a command and returns the response"""
     Messenger.send(messageIdentifier, *args)
     if messageIdentifier in [command for command in Messenger.commands]:
-        response = await listen(Messenger, "kAck")
+        response = listen(Messenger, "kAck")
     else:
-        response = await listen(Messenger, "kError")
+        response = listen(Messenger, "kError")
     return response
