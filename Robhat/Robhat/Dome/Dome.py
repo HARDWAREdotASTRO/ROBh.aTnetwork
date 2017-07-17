@@ -29,7 +29,7 @@ def motorStatusMonitor(app: aj.appjar.gui, Messenger: cmd.PyCmdMessenger.CmdMess
         nonlocal Messenger
         nonlocal app
         # Ask for the current status of the motor
-        t = await Control.sendCommand(Messenger, "Status")
+        t = Control.sendCommand(Messenger, "Status")
         d = {t[1][0]: t[1][1], t[1][2]: t[1][3]}  # parse the response
         def statusChanger():  # need a closure to write to the app when called
             nonlocal d  # use the message from above
