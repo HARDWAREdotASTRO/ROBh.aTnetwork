@@ -1,33 +1,33 @@
 import appJar as aj
-from typing import Any, Text, Dict, Sequence, List, Tuple, Callable, Union, NewType
-from toolz.curried import pipe, get, map, filter, reduce, operator as op, assoc, curry
+from typing import Any, Text, Dict, Tuple, Callable, NewType
+from toolz.curried import curry
 
 ButtonType = NewType('ButtonType', Tuple[Text, Callable[[], Any]])
 
 global BUTTONS
-BUTTONS = dict() #type: Dict[Text, ButtonType]
+BUTTONS = dict()  # type: Dict[Text, ButtonType]
+
 
 @curry
 def colorMode(app: aj.appjar.gui, button: Text )-> None:
     mode = app.getRadioButton(button)
-    if mode=="Night":
+    if mode == "Night":
         # app.setBg("#B71C1C")
         # app.setFg("#ECEFF1")
         pass
-    elif mode=="Normal":
+    elif mode == "Normal":
         # app.setBg("#37474F")
         # app.setFg("#ECEFF1")
         pass
 
 
-
-def makeUI(*, size: Tuple = (720,480), fullscreen: bool = False) -> aj.appjar.gui :
+def makeUI(*, size: Tuple = (720,480), fullscreen: bool = False) -> aj.appjar.gui:
     """
     Main function that creates the UI, requires size or fulscreen to be passed as a keyword argument
     """
     global BUTTONS
     try:
-        assert size or fulscreen
+        assert size or fullscreen
     except AssertionError as Err:
         raise ValueError(Err + "\nGeometry needs to be set")
     if not fullscreen:

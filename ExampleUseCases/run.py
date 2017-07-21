@@ -3,14 +3,12 @@ import threading
 import os
 import sys
 # import signal
-import asyncio as aio
 
 global Portglobal
 global PollTime
 global BaudRate
 global arduino
 global _signal_handler
-
 global ThreadingQ
 
 # ThreadingQ:
@@ -39,5 +37,5 @@ try:
 
 except (RuntimeError, KeyboardInterrupt, BaseException) as e:
     arduino.close()
-    raise e
+    print(e)
     sys.exit(1)

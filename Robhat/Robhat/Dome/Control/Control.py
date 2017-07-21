@@ -1,4 +1,5 @@
 from toolz.curried import filter, get, map, reduce
+from toolz.sandbox.core import unzip
 import PyCmdMessenger as cmd
 from time import sleep
 import os
@@ -24,10 +25,10 @@ def startBoard(port: Text, baud: int = 9600, *args, dtr: bool = False) ->  cmd.a
     """Starts up a connection to the Arduino Board, it's basically a wrapper around a PySerial instance"""
     return cmd.ArduinoBoard(port, baud_rate=baud, enable_dtr=dtr)
 
+
 def startMessenger(board: cmd.arduino.ArduinoBoard, commands_: List[List[Text]] = COMMANDS) -> cmd.PyCmdMessenger.CmdMessenger:
     """Starts up a CmdMessenger session"""
     return cmd.CmdMessenger(board, commands_, warnings=False)
-
 
 
 def ensureConnected(board: cmd.arduino.ArduinoBoard) -> bool:
@@ -61,31 +62,38 @@ def serialMonitor(board: cmd.arduino.ArduinoBoard) -> None:
             # os.abort()
             pass
 
-def listen(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: Text, *rest, tries: int = 250) -> Any:
+
+def listen(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: Text, *rest, arg_format: Text = None, tries: int = 250) -> Any:
     """ Listens for a specific type of response message"""
     try:
         assert any([messageIdentifier in command for command in Messenger.commands])
         pass
     except:
         raise ValueError("Message identifier must be a valid command identifier for the Messenger")
-    while 1:
-        message = Messenger.receive()
+    while True:
+        if arg_format is not None:
+            message = Messenger.receive(arg_formats=arg_format)
+        else:
+            message = Messenger.receive()
+
         if type(message) in [list, tuple] and message is not None:
             if message[0] == messageIdentifier:
                 return message
             else:
                 continue
 
+
 # def getLogs(Messenger: cmd.PyCmdMessenger.CmdMessenger) -> Text:
 #     """Yields the logs from the CmdMessenger"""
 #     while True:
 #         yield from listen(Messenger, "kLogging")
 
-def sendCommand(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: Text, *args) -> Any:
+
+def sendCommand(Messenger: cmd.PyCmdMessenger, messageIdentifier: Text, *args) -> Any:
     """Sends a command and returns the response"""
     Messenger.send(messageIdentifier, *args)
-    if messageIdentifier in [command for command in Messenger.commands]:
-        response = listen(Messenger, "kAck")
+    if messageIdentifier in [command for command in list(unzip(COMMANDS)[0])]:
+        response = listen(Messenger, "kAck", "s*")
     else:
-        response = listen(Messenger, "kError")
+        response = listen(Messenger, "kError", "s*")
     return response
