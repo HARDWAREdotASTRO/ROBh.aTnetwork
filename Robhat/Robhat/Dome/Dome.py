@@ -27,7 +27,7 @@ def motorStatusMonitor(app: aj.appjar.gui, Messenger: cmd.PyCmdMessenger.CmdMess
         nonlocal Messenger
         nonlocal app
         # Ask for the current status of the motor
-        t = Control.sendCommand(Messenger, "Status")
+        t = Control.sendCommand(Messenger, "kStatus")
         d = {t[1][0]: t[1][1], t[1][2]: t[1][3]}  # parse the response
 
         def statusChanger()->None:  # need a closure to write to the app when called
@@ -66,9 +66,9 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
     app.addLabel("motorStatus", "Motor A: \t\t ??? \nMotor B: \t\t ???", 0, 0)
 
     def offBoth(*args, **kwargs) -> None:  # define a local function to turn off both motors
-        _0 = Control.sendCommand(Messenger, "MotorOff", "A")
+        _0 = Control.sendCommand(Messenger, "kMotorOff", "A")
         del _0
-        _1 = Control.sendCommand(Messenger, "MotorOff", "B")
+        _1 = Control.sendCommand(Messenger, "kMotorOff", "B")
         del _1
 
     app.addButton(  # make me a button that turns off the motors!
@@ -81,9 +81,9 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
     print("making A")
     app.setSticky("nesw")
     app.setStretch("both")
-    app.addButton("onAF", lambda *a: Control.sendCommand(Messenger, "MotorOn", "A", "F", MotorDefaultTime), 0, 0)
-    app.addButton("onAR", lambda *a: Control.sendCommand(Messenger, "MotorOn", "A", "R", MotorDefaultTime), 0, 1)
-    app.addButton("offA", lambda *a: Control.sendCommand(Messenger, "MotorOff", "A"), 1, 0, colspan=2, rowspan=1)
+    app.addButton("onAF", lambda *a: Control.sendCommand(Messenger, "kMotorOn", "A", "F", MotorDefaultTime), 0, 0)
+    app.addButton("onAR", lambda *a: Control.sendCommand(Messenger, "kMotorOn", "A", "R", MotorDefaultTime), 0, 1)
+    app.addButton("offA", lambda *a: Control.sendCommand(Messenger, "kMotorOff", "A"), 1, 0, colspan=2, rowspan=1)
 
     app.stopLabelFrame()
 
@@ -91,9 +91,9 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
     print("making B")
     app.setSticky("nesw")
     app.setStretch("both")
-    app.addButton("onBF", lambda *a: Control.sendCommand(Messenger, "MotorOn", "B", "F", MotorDefaultTime), 0, 0)
-    app.addButton("onBR", lambda *a: Control.sendCommand(Messenger, "MotorOn", "B", "R", MotorDefaultTime), 0, 1)
-    app.addButton("offB", lambda *a: Control.sendCommand(Messenger, "MotorOff", "B"), 1, 0, colspan=2, rowspan=1)
+    app.addButton("onBF", lambda *a: Control.sendCommand(Messenger, "kMotorOn", "B", "F", MotorDefaultTime), 0, 0)
+    app.addButton("onBR", lambda *a: Control.sendCommand(Messenger, "kMotorOn", "B", "R", MotorDefaultTime), 0, 1)
+    app.addButton("offB", lambda *a: Control.sendCommand(Messenger, "kMotorOff", "B"), 1, 0, colspan=2, rowspan=1)
 
     app.stopLabelFrame()
     app.stopTab()

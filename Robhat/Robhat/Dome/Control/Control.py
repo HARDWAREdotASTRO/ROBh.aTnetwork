@@ -13,9 +13,9 @@ from typing import Any, Text, Dict, Sequence, List, Tuple, Callable, Union, NewT
 
 global COMMANDS
 
-COMMANDS = [["MotorOn","ssi"],
-            ["MotorOff","s"],
-            ["Status","s*"],
+COMMANDS = [["kMotorOn","ssi"],
+            ["kMotorOff","s"],
+            ["kStatus","s*"],
             ["kAck","s*"],
             ["kError","s*"],
             ["kLogging", "s*"]]

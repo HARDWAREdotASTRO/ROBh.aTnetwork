@@ -92,9 +92,9 @@ void motorOn(const char * motor,
 CmdMessenger cmdMessenger = CmdMessenger(Serial,',',';','/');
 
 enum {
-        MotorOn,
-        MotorOff,
-        Status,
+        kMotorOn,
+        kMotorOff,
+        kStatus,
         kAck,
         kError,
         kLogging
@@ -128,33 +128,34 @@ void CommandMotorOn(){
         char * dir = cmdMessenger.readStringArg();
         int delayTime = cmdMessenger.readBinArg<int>();
         if (delayTime <= 0) {int delayTime = 1;}
-        if (motor == "A" and dir =="F") { // turn on A
-                buttonState[0] = LOW;
-                currentState[0] = LOW;
-                currentState[1] = HIGH;
-                motorATime = delayTime;
-        }
-
-        if (motor == "A" and dir =="R") { // turn on A
-                buttonState[1] = LOW;
-                currentState[1] = LOW;
-                currentState[0] = HIGH;
-                motorATime = delayTime;
-        }
-
-        if (motor =="B" and dir =="F") { // turn on B
-                buttonState[2] = LOW;
-                currentState[2] = LOW;
-                currentState[3] = HIGH;
-                motorBTime = delayTime;
-        }
-
-        if (motor =="B" and dir =="R") { // turn on B
-                buttonState[3] = LOW;
-                currentState[2] = HIGH;
-                currentState[3] = LOW;
-                motorBTime = delayTime;
-        }
+        // if (motor == "A" and dir =="F") { // turn on A
+        //         buttonState[0] = LOW;
+        //         currentState[0] = LOW;
+        //         currentState[1] = HIGH;
+        //         motorATime = delayTime;
+        // }
+        //
+        // if (motor == "A" and dir =="R") { // turn on A
+        //         buttonState[1] = LOW;
+        //         currentState[1] = LOW;
+        //         currentState[0] = HIGH;
+        //         motorATime = delayTime;
+        // }
+        //
+        // if (motor =="B" and dir =="F") { // turn on B
+        //         buttonState[2] = LOW;
+        //         currentState[2] = LOW;
+        //         currentState[3] = HIGH;
+        //         motorBTime = delayTime;
+        // }
+        //
+        // if (motor =="B" and dir =="R") { // turn on B
+        //         buttonState[3] = LOW;
+        //         currentState[2] = HIGH;
+        //         currentState[3] = LOW;
+        //         motorBTime = delayTime;
+        // }
+        motorOn(motor, dir, delayTime);
         cmdMessenger.sendCmdStart(kAck);
         cmdMessenger.sendCmdArg(motor);
         cmdMessenger.sendCmdArg(dir);
@@ -194,9 +195,9 @@ bool cycleTimer(unsigned long &prevTime, unsigned long interval){
 
 void attatchCommandCallbacks(){
         cmdMessenger.attach(CommandUnknown);
-        cmdMessenger.attach(MotorOff, CommandMotorOff);
-        cmdMessenger.attach(MotorOn, CommandMotorOn);
-        cmdMessenger.attach(Status, CommandStatus);
+        cmdMessenger.attach(kMotorOff, CommandMotorOff);
+        cmdMessenger.attach(kMotorOn, CommandMotorOn);
+        cmdMessenger.attach(kStatus, CommandStatus);
 }
 
 void setup(){// initializes the sketch by defining variables and pin modes
