@@ -5,6 +5,7 @@ __pycache__/
 .idea
 *.pioenvs
 .config
+*.swp
 
 .gcc-flags.json
 .clang_complete

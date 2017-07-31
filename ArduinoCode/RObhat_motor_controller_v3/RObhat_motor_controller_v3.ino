@@ -93,6 +93,7 @@ CmdMessenger cmdMessenger = CmdMessenger(Serial,',',';','/');
 
 enum {
         kMotorOn,
+        kMotorStayOn,
         kMotorOff,
         kStatus,
         kAck,
@@ -117,6 +118,42 @@ void CommandMotorOff(){
         cmdMessenger.sendCmdArg(motor);
         cmdMessenger.sendCmdArg("OFF");
         cmdMessenger.sendCmdEnd();
+}
+
+void CommandMotorStayOn(){
+        char * motor = cmdMessenger.readStringArg();
+        char * dir = cmdMessenger.readStringArg();
+        if (motor == "A") {
+                if (dir == "F") {
+                        digitalWrite(motorAR_neutral, LOW);
+                        digitalWrite(motorAR_hot, LOW);
+                        digitalWrite(motorAF_hot, HIGH);
+                        digitalWrite(motorAF_neutral, HIGH);
+                } else if (dir == "R") {
+                        digitalWrite(motorAF_neutral, LOW);
+                        digitalWrite(motorAF_hot, LOW);
+                        digitalWrite(motorAR_hot, HIGH);
+                        digitalWrite(motorAR_neutral, HIGH);
+                }
+        } else if (motor == "B") {
+                if (dir == "F") {
+                        digitalWrite(motorBR_neutral, LOW);
+                        digitalWrite(motorBR_hot, LOW);
+                        digitalWrite(motorBF_hot, HIGH);
+                        digitalWrite(motorBF_neutral, HIGH);
+                } else if (dir == "R") {
+                        digitalWrite(motorBF_neutral, LOW);
+                        digitalWrite(motorBF_hot, LOW);
+                        digitalWrite(motorBR_hot, HIGH);
+                        digitalWrite(motorBR_neutral, HIGH);
+                }
+        }
+        cmdMessenger.sendCmdStart(kAck);
+        cmdMessenger.sendCmdArg("FORCED");
+        cmdMessenger.sendCmdArg(motor);
+        cmdMessenger.sendCmdArg(dir);
+        cmdMessenger.sendCmdEnd();
+
 }
 
 void CommandMotorOn(){
@@ -196,6 +233,7 @@ bool cycleTimer(unsigned long &prevTime, unsigned long interval){
 void attatchCommandCallbacks(){
         cmdMessenger.attach(CommandUnknown);
         cmdMessenger.attach(kMotorOff, CommandMotorOff);
+        cmdMessenger.attach(kMotorStayOn, CommandMotorStayOn);
         cmdMessenger.attach(kMotorOn, CommandMotorOn);
         cmdMessenger.attach(kStatus, CommandStatus);
 }
