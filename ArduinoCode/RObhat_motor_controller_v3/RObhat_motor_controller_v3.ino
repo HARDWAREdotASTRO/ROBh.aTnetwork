@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <CmdMessenger.h>
-// #include <SoftwareSerial.h>
 
 unsigned long thisCycleStart = 0;
 const int motorAF_neutral = 9; // motor circuit is connected to pin 5
@@ -41,13 +40,13 @@ const int TIME = 1 * 1000; // testing for how long to keep motors on for
 int motorATime = TIME;
 int motorBTime = TIME;
 
-void motorOff(const char * motor) {
-        if (motor == "A") {
+void motorOff(char motor) {
+        if (motor == 'A') {
                 digitalWrite(motorAF_neutral, LOW);
                 digitalWrite(motorAF_hot, LOW);
                 digitalWrite(motorAR_neutral, LOW);
                 digitalWrite(motorAR_hot, LOW);
-        } else if (motor == "B") {
+        } else if (motor == 'B') {
                 digitalWrite(motorBF_neutral, LOW);
                 digitalWrite(motorBF_hot, LOW);
                 digitalWrite(motorBR_neutral, LOW);
@@ -55,29 +54,29 @@ void motorOff(const char * motor) {
         }
 }
 
-void motorOn(const char * motor, const char * dir, int delayTime=TIME);
+void motorOn(char motor, char dir, int delayTime=TIME);
 
-void motorOn(const char * motor,
-             const char * dir, int delayTime){
-        if (motor == "A") {
-                if (dir == "F") {
+void motorOn(char motor,
+             char dir, int delayTime){
+        if (motor == 'A') {
+                if (dir == 'F') {
                         digitalWrite(motorAR_neutral, LOW);
                         digitalWrite(motorAR_hot, LOW);
                         digitalWrite(motorAF_hot, HIGH);
                         digitalWrite(motorAF_neutral, HIGH);
-                } else if (dir == "R") {
+                } else if (dir == 'R') {
                         digitalWrite(motorAF_neutral, LOW);
                         digitalWrite(motorAF_hot, LOW);
                         digitalWrite(motorAR_hot, HIGH);
                         digitalWrite(motorAR_neutral, HIGH);
                 }
-        } else if (motor == "B") {
-                if (dir == "F") {
+        } else if (motor == 'B') {
+                if (dir == 'F') {
                         digitalWrite(motorBR_neutral, LOW);
                         digitalWrite(motorBR_hot, LOW);
                         digitalWrite(motorBF_hot, HIGH);
                         digitalWrite(motorBF_neutral, HIGH);
-                } else if (dir == "R") {
+                } else if (dir == 'R') {
                         digitalWrite(motorBF_neutral, LOW);
                         digitalWrite(motorBF_hot, LOW);
                         digitalWrite(motorBR_hot, HIGH);
@@ -112,7 +111,7 @@ void OnReady(){
 }
 
 void CommandMotorOff(){
-        char * motor = cmdMessenger.readStringArg();
+        char motor = cmdMessenger.readBinArg<char>();
         motorOff(motor);
         cmdMessenger.sendCmdStart(kAck);
         cmdMessenger.sendCmdArg(motor);
@@ -121,27 +120,27 @@ void CommandMotorOff(){
 }
 
 void CommandMotorStayOn(){
-        char * motor = cmdMessenger.readStringArg();
-        char * dir = cmdMessenger.readStringArg();
-        if (motor == "A") {
-                if (dir == "F") {
+        char motor = cmdMessenger.readBinArg<char>();
+        char dir = cmdMessenger.readBinArg<char>();
+        if (motor == 'A') {
+                if (dir == 'F') {
                         digitalWrite(motorAR_neutral, LOW);
                         digitalWrite(motorAR_hot, LOW);
                         digitalWrite(motorAF_hot, HIGH);
                         digitalWrite(motorAF_neutral, HIGH);
-                } else if (dir == "R") {
+                } else if (dir == 'R') {
                         digitalWrite(motorAF_neutral, LOW);
                         digitalWrite(motorAF_hot, LOW);
                         digitalWrite(motorAR_hot, HIGH);
                         digitalWrite(motorAR_neutral, HIGH);
                 }
-        } else if (motor == "B") {
-                if (dir == "F") {
+        } else if (motor == 'B') {
+                if (dir == 'F') {
                         digitalWrite(motorBR_neutral, LOW);
                         digitalWrite(motorBR_hot, LOW);
                         digitalWrite(motorBF_hot, HIGH);
                         digitalWrite(motorBF_neutral, HIGH);
-                } else if (dir == "R") {
+                } else if (dir == 'R') {
                         digitalWrite(motorBF_neutral, LOW);
                         digitalWrite(motorBF_hot, LOW);
                         digitalWrite(motorBR_hot, HIGH);
@@ -158,35 +157,35 @@ void CommandMotorStayOn(){
 
 void CommandMotorOn(){
         //Must send the following information:
-        // Motor: "A" or "B"
-        // Direction: "F" or "R"
+        // Motor: 'A' or 'B'
+        // Direction: 'F' or 'R'
         // Time: int > 0
-        char * motor = cmdMessenger.readStringArg();
-        char * dir = cmdMessenger.readStringArg();
+        char motor = cmdMessenger.readBinArg<char>();
+        char dir = cmdMessenger.readBinArg<char>();
         int delayTime = cmdMessenger.readBinArg<int>();
         if (delayTime <= 0) {int delayTime = 1;}
-        // if (motor == "A" and dir =="F") { // turn on A
+        // if (motor == 'A' and dir =='F') { // turn on A
         //         buttonState[0] = LOW;
         //         currentState[0] = LOW;
         //         currentState[1] = HIGH;
         //         motorATime = delayTime;
         // }
         //
-        // if (motor == "A" and dir =="R") { // turn on A
+        // if (motor == 'A' and dir =='R') { // turn on A
         //         buttonState[1] = LOW;
         //         currentState[1] = LOW;
         //         currentState[0] = HIGH;
         //         motorATime = delayTime;
         // }
         //
-        // if (motor =="B" and dir =="F") { // turn on B
+        // if (motor =='B' and dir =='F') { // turn on B
         //         buttonState[2] = LOW;
         //         currentState[2] = LOW;
         //         currentState[3] = HIGH;
         //         motorBTime = delayTime;
         // }
         //
-        // if (motor =="B" and dir =="R") { // turn on B
+        // if (motor =='B' and dir =='R') { // turn on B
         //         buttonState[3] = LOW;
         //         currentState[2] = HIGH;
         //         currentState[3] = LOW;
@@ -261,8 +260,8 @@ void setup(){// initializes the sketch by defining variables and pin modes
         pinMode(buttonBR, INPUT_PULLUP); // input, shorting to ground pulls input
         // low, so "LOW" state is on
         //
-        // motorOff("A");
-        // motorOff("B");
+        // motorOff('A');
+        // motorOff('B');
         cmdMessenger.sendCmd(kLogging, "Arduino Initialized");
 }
 
@@ -289,6 +288,7 @@ void loop() {
 
         // cmdMessenger.sendCmd(kLogging, "Start Reading");
         cmdMessenger.feedinSerialData();
+        delay(10);
         // cmdMessenger.sendCmd(kLogging, "Done Reading");
 
         // for (int i = 0; i < 4; i++) {
@@ -303,33 +303,33 @@ void loop() {
 
         if (buttonState[0] == LOW) {
                 if (not (digitalRead(motorAR_hot) == HIGH or currentState[1] == LOW) or buttonState[1] == HIGH) {
-                        motorOn("A", "F", motorATime);
+                        motorOn('A', 'F', motorATime);
                 }
         }
 
         if (buttonState[1] == LOW) {
                 if (not (digitalRead(motorAF_hot) == HIGH or currentState[0] == LOW) or buttonState[0] == HIGH ) {
-                        motorOn("A", "R", motorATime);
+                        motorOn('A', 'R', motorATime);
                 }
 
         }
         if (buttonState[0] == HIGH and buttonState[1] == HIGH) {
-                motorOff("A");
+                motorOff('A');
         }
         if (buttonState[2] == LOW) {
                 if (not (digitalRead(motorBR_hot) == HIGH or currentState[3] == LOW) or buttonState[3] == HIGH) {
-                        motorOn("B", "F", motorBTime);
+                        motorOn('B', 'F', motorBTime);
                 }
         }
 
         if (buttonState[3] == LOW) {
                 if (not (digitalRead(motorBF_hot) == HIGH or currentState[2] == LOW) or buttonState[2] == HIGH ) {
-                        motorOn("B", "R", motorBTime);
+                        motorOn('B', 'R', motorBTime);
                 }
 
         }
         if (buttonState[2] == HIGH and buttonState[3] == HIGH) {
-                motorOff("B");
+                motorOff('B');
         }
 
         // CommandStatus();
@@ -356,8 +356,8 @@ void loop() {
                 }
         }
 
-        // motorOff("A");
-        // motorOff("B");
+        // motorOff('A');
+        // motorOff('B');
         motorATime = TIME;
         motorBTime = TIME;
 

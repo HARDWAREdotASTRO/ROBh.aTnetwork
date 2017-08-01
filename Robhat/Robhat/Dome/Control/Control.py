@@ -13,9 +13,9 @@ from typing import Any, Text, Dict, Sequence, List, Tuple, Callable, Union, NewT
 
 global COMMANDS
 
-COMMANDS = [["kMotorOn","ssi"],
-            ["kMotorStayOn", "ss"],
-            ["kMotorOff","s"],
+COMMANDS = [["kMotorOn","cci"],
+            ["kMotorStayOn", "cc"],
+            ["kMotorOff","c"],
             ["kStatus","s*"],
             ["kAck","s*"],
             ["kError","s*"],
@@ -79,6 +79,7 @@ def listen(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: Text, 
 
         if type(message) in [list, tuple] and message is not None:
             if message[0] == messageIdentifier:
+                print(message)
                 return message
             else:
                 continue

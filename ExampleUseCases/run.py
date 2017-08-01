@@ -36,6 +36,9 @@ try:
         UIThread.join()
 
 except (RuntimeError, KeyboardInterrupt, BaseException) as e:
-    arduino.close()
-    print(e)
-    sys.exit(1)
+    try:
+        arduino.close()
+        print(e)
+        sys.exit(1)
+    except:
+        sys.exit(1)

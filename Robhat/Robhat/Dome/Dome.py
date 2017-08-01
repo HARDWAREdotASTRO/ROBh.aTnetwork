@@ -23,23 +23,18 @@ def readConfig(configFile: Text = "./.config") -> Dict[Text, Union[Text, float, 
 
 
 def motorStatusMonitor(app: aj.appjar.gui, Messenger: cmd.PyCmdMessenger.CmdMessenger) -> Callable[[],None]:
-    def getStatus()->Callable[[],None]:
+    def getStatus()->None:
         nonlocal Messenger
         nonlocal app
         # Ask for the current status of the motor
         t = Control.sendCommand(Messenger, "kStatus")
         d = {t[1][0]: t[1][1], t[1][2]: t[1][3]}  # parse the response
+        app.openTab("Main", "Control")
+        app.openLabelFrame("Status")
+        app.setLabel("motorStatus",
+                     f"Motor A: \t {get('A', d, '???')}\nMotor B: \t {get('B', d, '???')}")
 
-        def statusChanger()->None:  # need a closure to write to the app when called
-            nonlocal d  # use the message from above
-            nonlocal app  # use the app passed with motorStatusMonitor
-            app.openTab("Main", "Control")
-            app.openLabelFrame("Status")
-            app.setLabel("motorStatus",
-                         f"Motor A: \t {get('A', d, '???')}\nMotor B: \t {get('B', d, '???')}")
-        return statusChanger
-
-    return getStatus()
+    return getStatus
 
 
 def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMessenger, *rest, MotorDefaultTime=1000,
@@ -57,11 +52,17 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
         del _0
         _1 = Control.sendCommand(Messenger, "kMotorOff", "B")
         del _1
+        app.setRadioButton("AFControl", "Default", callFunction=False)
+        app.setRadioButton("ARControl", "Default", callFunction=False)
+        app.setRadioButton("BFControl", "Default", callFunction=False)
+        app.setRadioButton("BRControl", "Default", callFunction=False)
+
 
     def motorRadioButtonChanged(button):
         state = app.getRadioButton(button)
         if state == "Default":
-            return None
+            response = Control.sendCommand(Messenger, "kMotorOff", button[0])
+            return response
         elif state == "FOn":
             val = "On"
         else:
@@ -69,28 +70,27 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
         if button.startswith("A"):
             if val=="On":
                 if button[1]=="F":
-                    app.setRadioButton("ARControl", "Default", calllFunction=False)
+                    app.setRadioButton("ARControl", "Default", callFunction=False)
                     response = Control.sendCommand(Messenger, "kMotorStayOn", "A", "F")
                 elif button[1]=="R":
-                    app.setRadioButton("AFControl", "Default", calllFunction=False)
+                    app.setRadioButton("AFControl", "Default", callFunction=False)
                     response = Control.sendCommand(Messenger, "kMotorStayOn", "A", "R")
             else:
                 Control.sendCommand(Messenger, "kMotorOff", "A")
         if button.startswith("B"):
             if val == "On":
                 if button[1] == "F":
-                    app.setRadioButton("BRControl", "Default", calllFunction=False)
+                    app.setRadioButton("BRControl", "Default", callFunction=False)
                     response = Control.sendCommand(Messenger, "kMotorStayOn", "B", "F")
                 elif button[1] == "R":
-                    app.setRadioButton("BFControl", "Default", calllFunction=False)
+                    app.setRadioButton("BFControl", "Default", callFunction=False)
                     response = Control.sendCommand(Messenger, "kMotorStayOn", "B", "R")
             else:
                 response = Control.sendCommand(Messenger, "kMotorOff", "B")
         return response
 
     app = UI.makeUI(size=(800, 480))
-    app.setPollTime(ceil(
-            MotorDefaultTime / 1000))
+    app.setPollTime(ceil(1000 / MotorDefaultTime))
     if fullscreen:
         app.setGeometry("fullscreen")
     app.setSticky("nesw")
@@ -158,6 +158,8 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
     app.startLabelFrame("ForcingB", 3, 2, colspan=1, rowspan=2)
 
     app.startLabelFrame("BForward", 0, 0, colspan=1, rowspan=2)
+    app.setSticky("nesw")
+    app.setStretch("both")
     app.addRadioButton("BFControl", "Default")
     app.addRadioButton("BFControl", "FOn")
     app.addRadioButton("BFControl", "FOff")
@@ -166,6 +168,8 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
     app.stopLabelFrame()
 
     app.startLabelFrame("BReverse", 0, 1, colspan=1, rowspan=2)
+    app.setSticky("nesw")
+    app.setStretch("both")
     app.addRadioButton("BRControl", "Default")
     app.addRadioButton("BRControl", "Force On")
     app.addRadioButton("BRControl", "Force Off")
@@ -179,13 +183,19 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
 
     app.startTab("Macros")
     print("making Macros")
+    app.setSticky("nesw")
+    app.setStretch("both")
 
-    app.startLabelFrame("Dome Controls", 0,0, rowspan=2, colspan=2)
+    app.startLabelFrame("Defaults", 0,0, rowspan=2, colspan=2)
+    app.setSticky("nesw")
+    app.setStretch("both")
     app.addButton("Store", lambda *args: None, 0,0, rowspan=1, colspan=2)
     app.addButton("Home", lambda *args: None, 1,0, rowspan=1, colspan=2)
     app.stopLabelFrame()
 
     app.startLabelFrame("GUI", 0, 2, rowspan=2, colspan=2)
+    app.setSticky("nesw")
+    app.setStretch("both")
     app.addButton("Refresh", lambda *args: None, 0,0, rowspan=1, colspan=2)
     app.addButton("Exit", lambda *args: _close(app, arduino), 1,0, rowspan=1, colspan=2)
     app.stopLabelFrame()
@@ -194,7 +204,11 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
 
     app.startTab("Settings")
     print("making settings")
+    app.setSticky("nesw")
+    app.setStretch("both")
     app.startLabelFrame("Display", 1, 0)
+    app.setSticky("nesw")
+    app.setStretch("both")
     app.addRadioButton("colorMode", "Normal")
     app.addRadioButton("colorMode", "Night")
     app.setRadioButton("colorMode", "Normal", callFunction=False)
@@ -203,7 +217,8 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
     app.stopTab()
     app.stopTabbedFrame()
     print("Registering Events")
-    app.registerEvent(motorStatusMonitor(app, Messenger)) # listen for the status changes
+    # Keep the status monitor commented out for now, it polls too frequently and blocks UI
+    # app.registerEvent(motorStatusMonitor(app, Messenger)) # listen for the status changes
     app.registerEvent(lambda: UI.colorMode(app, "colorMode"))  # Listen for changes to the colormode buttons
 
     app.setStopFunction(lambda *a: _close(app, board))
