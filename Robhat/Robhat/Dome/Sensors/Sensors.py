@@ -2,14 +2,13 @@ import smbus2 as smbus
 import time
 import math
 import numpy as np
-from toolz.curried import map, filter, reduce, operator as op
-from collections import OrderedDict
-import RPi.GPIO as GPIO
-from scipy import stats
-#global address
-# bus = smbus.SMBus(0)
-# address = 0x1e
-
+from toolz.curried import operator as op
+import importlib.util
+try:
+    importlib.util.find_spec('RPi.GPIO')
+    import RPi.GPIO as GPIO
+except ImportError:
+    import FakeRPi.GPIO as GPIO
 
 class I2CDevice:
 
@@ -92,25 +91,9 @@ class HMC5883L(I2CDevice):
         bearing += self.magDeclination
         if bearing<0:
             bearing += 2* math.pi
-        # print(math.degrees(bearing))
-        # print("\a")
         return math.degrees(bearing)
 
-def summary(data, *rest, angular=False, radians=True):
-    numbers = OrderedDict([("Mean", np.mean(data)),
-                           ("Min", np.amin(data)),
-                           ("Q1",np.percentile(data,25)),
-                           ("Median",np.median(data)),
-                           ("Q3",np.percentile(data, 75)),
-                           ("Max", np.amax(data)),
-                           ("Range", np.amax(data)-np.amin(data)),
-                           ("IQR", np.percentile(data, 75)-np.percentile(data, 25)),
-                           ("STD", np.std(data))])
-    if angular:
-        kwargs = {'high':2*np.pi, 'low':0} if radians else {'high':360, 'low':0}
-        numbers["CircMean"] = stats.circmean(data, **kwargs)
-        numbers["CircSTD"] = stats.circvar(data, **kwargs)
-    return numbers
+
 
 def getTimedData(*_, getMethod=lambda: None, numSamples=100, pollRate=75, pin=4, pinTrigger=False):
     data = []
@@ -131,18 +114,3 @@ def getTimedData(*_, getMethod=lambda: None, numSamples=100, pollRate=75, pin=4,
             data += [getMethod()]
             time.sleep(1/pollRate)
     return data
-
-
-def textSummary(data, angular=False, radians=True):
-    strings = []
-    if angular:
-        strings.append("{0:^20.20s}".format("Data Summary"))
-        strings.append('='*20)
-        strings += [f"{key+':':<10.12s} {value:>9.3f}" for key, value in summary(data, angular=True, radians=radians).items()]
-        strings.append('='*20)
-    else:
-        strings.append("{0:^20.20s}".format("Data Summary"))
-        strings.append('='*20)
-        strings += [f"{key+':':<10.12s} {value:>9.3f}" for key, value in summary(data).items()]
-        strings.append('='*20)
-    return "\n".join(strings)

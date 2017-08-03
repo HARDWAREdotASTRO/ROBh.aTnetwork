@@ -1,3 +1,4 @@
-__all__ = ["Dome", "Dome.UI", "Dome.Control", "Dome.Macros"]
+__all__ = ["Data", "Dome", "Dome.UI", "Dome.Sensors", "Dome.Control", "Dome.Macros", "Robhat"]
 
 from . import Dome
+from . import Data
