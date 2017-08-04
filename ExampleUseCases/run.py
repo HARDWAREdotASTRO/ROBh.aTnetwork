@@ -29,9 +29,9 @@ try:
     arduino = Dome.Control.startBoard(Port, BaudRate, dtr=False)
     messenger = Dome.Control.startMessenger(arduino, Dome.Control.COMMANDS)
     if ThreadingQ:
-        Dome.demo(arduino, messenger, MotorDefaultTime=PollTime)
+        Dome.demo(arduino, messenger, MotorDefaultTime=PollTime, sensing=False)
     else:
-        UIThread = threading.Thread(name="UI", target=Dome.demo, args=(arduino, messenger), kwargs={"MotorDefaultTime":PollTime}, daemon=True)
+        UIThread = threading.Thread(name="UI", target=Dome.demo, args=(arduino, messenger), kwargs={"MotorDefaultTime":PollTime, "sensing": False}, daemon=True)
         UIThread.start()
         UIThread.join()
 

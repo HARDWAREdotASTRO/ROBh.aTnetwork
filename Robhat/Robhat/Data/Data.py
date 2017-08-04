@@ -1,5 +1,8 @@
 import numpy as np
 import scipy.stats as stats
+from .. import Dome
+from .. import Dome.Control as Control, Dome.Macros as Macros, Dome.Sensors as Sensors, Dome.UI as UI
+from collections import OrderedDict
 
 def summary(data, *rest, angular=False, radians=True):
     numbers = OrderedDict([("Mean", np.mean(data)),

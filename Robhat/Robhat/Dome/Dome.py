@@ -1,11 +1,17 @@
-from . import Control, UI, Macros
+from . import Control, UI, Macros, Sensors
+from .. import Data
 from typing import Dict, Text, Any, List, Tuple, Callable, Union, NewType
 from toolz.curried import get, merge
 import appJar as aj
 from math import ceil
 import PyCmdMessenger as cmd
 import configparser
+import scipy.stats
 
+try:
+    import smbus2 as smbus
+except:
+    pass
 
 def readConfig(configFile: Text = "./.config") -> Dict[Text, Union[Text, float, ]]:
     """
@@ -21,6 +27,10 @@ def readConfig(configFile: Text = "./.config") -> Dict[Text, Union[Text, float, 
     settings = merge(dict(config["DEFAULT"].items()), settings)
     return settings
 
+def appGetBearing(sensor: Union[Sensors.I2CDevice, Sensors.HMC5883L], numSamples: int=75, pollRate: int=75, pin=4, pinTrigger=False) -> float:
+    data = Sensors.getTimedData(getMethod=sensor.getBearing, numSamples=numSamples, pollRate=pollRate, pin=pin, pinTrigger=pinTrigger)
+    averages, *rest = Data.boxcar(data, carlength=5, func=lambda x: scipy.stats.circmean(x, low=0, high=360))
+    scipy.stats.circmean(averages[:-5], low=0, high=360)
 
 def motorStatusMonitor(app: aj.appjar.gui, Messenger: cmd.PyCmdMessenger.CmdMessenger) -> Callable[[],None]:
     def getStatus()->None:
@@ -38,7 +48,7 @@ def motorStatusMonitor(app: aj.appjar.gui, Messenger: cmd.PyCmdMessenger.CmdMess
 
 
 def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMessenger, *rest, MotorDefaultTime=1000,
-         fullscreen=False) -> None:
+         fullscreen=False, sensing=True) -> None:
     """Demo"""
 
     def _close(app_, arduino_) -> bool:
@@ -88,7 +98,10 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
             else:
                 response = Control.sendCommand(Messenger, "kMotorOff", "B")
         return response
-
+    if sensing:
+        bus = smbus.SMBus(1)
+        address = 0x1e
+        magSensor = Sensors.HMC5883L(bus, address, magDeclination=-0.171624)
     app = UI.makeUI(size=(800, 480))
     app.setPollTime(ceil(1000 / MotorDefaultTime))
     if fullscreen:
@@ -106,6 +119,8 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
     app.setStretch("both")
     print("making status panel")
     app.addLabel("motorStatus", "Motor A: \t ??? \nMotor B: \t ???", 0, 0)
+    if sensing:
+        app.addLabel("CurrentBearing", f"Current Bearing is: {appGetBearing(magSensor, numSamples=50, pollRate=75):.3f}°")
 
 
     app.addButton(  # make me a button that turns off the motors!
