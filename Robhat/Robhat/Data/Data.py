@@ -1,10 +1,41 @@
 import numpy as np
 import scipy.stats as stats
-from .. import Dome
-from .. import Dome.Control as Control, Dome.Macros as Macros, Dome.Sensors as Sensors, Dome.UI as UI
+# from .. import Dome
+# from ..Dome import Macros
+# from ..Dome import Control
+# from ..Dome import Sensors
+# from ..Dome import UI
 from collections import OrderedDict
+from typing import Union, Text, NewType, List, Tuple, Dict, Generic, TypeVar, Iterable, Callable
+import pandas as pd
 
-def summary(data, *rest, angular=False, radians=True):
+SciData = NewType("SciData", Union[np.ndarray, pd.core.frame.DataFrame, pd.core.series.Series, List[Union[int, float, bytes]]])
+"""NewType: A generic type for loads of data containers that scientific people use."""
+
+def summary(data: SciData, *rest, angular=False, radians=True)->OrderedDict:
+    """
+    Generate an ordered dictionary of statistics and their values over a dataset
+    Args:
+        data (SciData): The data to be analyzed
+        *rest: ignored.
+        angular (bool): Is our data angular data? If so, we'll also provide circular statistics.
+        radians (bool): Is our data in radians? If not, use degrees.
+
+    Returns:
+        numbers (OrderedDict): a dictionary containing the following statistics:
+
+            - Mean
+            - Min
+            - Q1
+            - Median
+            - Q3
+            - Max
+            - Range
+            - IQR
+            - STD
+            - CircMean (only if `angular=True`)
+            - CircSTD (only if `angular=True`)
+    """
     numbers = OrderedDict([("Mean", np.mean(data)),
                            ("Min", np.amin(data)),
                            ("Q1",np.percentile(data,25)),
@@ -20,7 +51,17 @@ def summary(data, *rest, angular=False, radians=True):
         numbers["CircSTD"] = stats.circvar(data, **kwargs)
     return numbers
 
-def textSummary(data, angular=False, radians=True):
+def textSummary(data: SciData, angular: bool=False, radians: bool=True) -> Text:
+    """
+    Uses the information provided by `summary` to create a text block of data.
+    Args:
+        data (SciData): The dataset to use.
+        angular (bool): If our data is angular, then we also provide circular statistics.
+        radians (bool): If our data is in degrees, need to pass `radians=False`
+
+    Returns:
+        (Text): A formatted string containing all statisical data provided by `summary`.
+    """
     strings = []
     if angular:
         strings.append("{0:^20.20s}".format("Data Summary"))
@@ -34,7 +75,21 @@ def textSummary(data, angular=False, radians=True):
         strings.append('='*20)
     return "\n".join(strings)
 
-def boxcar(data, carlength=5, func=np.mean):
+def boxcar(data: SciData, carlength: int = 5, func: Callable[[SciData],Union[float,int]] = np.mean) -> Tuple[List[Union[float,int]], List[Union[float,int]]]:
+    """
+    Runs boxcar averaging using `func` with n=carlength sized cars.
+    Args:
+        data (SciData): The data to process
+        carlength (int): How many samples are processed each time we need.
+        func (Callable[[SciData], Union[float,int]]): the function we use to process each chunk of data
+
+    Returns:
+        averages (List[Union[float, int]]): The running averages of the boxcar routine
+        boxes (List[Union[float, int]):  The samples used in each step of the algorithm
+
+    Next Steps:
+        Run averages through `func` one more time to get a grand-average.
+    """
     boxes = []
     averages = []
     for i in range(carlength-1, len(data)+carlength):

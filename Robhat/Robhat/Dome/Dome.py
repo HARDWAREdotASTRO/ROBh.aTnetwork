@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from . import Control, UI, Macros, Sensors
 from .. import Data
 from typing import Dict, Text, Any, List, Tuple, Callable, Union, NewType
@@ -13,9 +14,16 @@ try:
 except:
     pass
 
-def readConfig(configFile: Text = "./.config") -> Dict[Text, Union[Text, float, ]]:
+def readConfig(configFile: Text = "./.config") -> Dict[Text, Union[Text, float, int]]:
     """
     Reads a configuration file.
+
+    Args:
+        configFile (Text): Path to the configuration file of which to parse
+
+    Returns:
+        Returns a dictionary containing the fields of the config file,
+        with some special paramaters extracted from the raw text.
     """
     config = configparser.ConfigParser()
     config.optionxform = str
@@ -28,14 +36,44 @@ def readConfig(configFile: Text = "./.config") -> Dict[Text, Union[Text, float, 
     return settings
 
 def appGetBearing(sensor: Union[Sensors.I2CDevice, Sensors.HMC5883L], numSamples: int=75, pollRate: int=75, pin=4, pinTrigger=False) -> float:
+    """
+    Gets the current bearing of the sensor provided as the first argument.
+    Args:
+        sensor (Union[Sensors.I2CDevice, Sensors.HMC5883L]): the sensor device that needs to be polled
+        numSamples (int): how many samples should we get?
+        pollRate (int): How many times per second should we poll the sensor?
+        pin (int): If we want to trigger based off of a pin, we need to know what pin we're using.
+        pinTrigger (bool): Should we care about triggering from a pin?
+
+    Returns:
+        A float between 0.0 and 360.0 which is the circular average of the boxcar[n=5]-circular average of the data read.
+
+    """
     data = Sensors.getTimedData(getMethod=sensor.getBearing, numSamples=numSamples, pollRate=pollRate, pin=pin, pinTrigger=pinTrigger)
     averages, *rest = Data.boxcar(data, carlength=5, func=lambda x: scipy.stats.circmean(x, low=0, high=360))
-    scipy.stats.circmean(averages[:-5], low=0, high=360)
+    return scipy.stats.circmean(averages[:-5], low=0, high=360)
 
-def motorStatusMonitor(app: aj.appjar.gui, Messenger: cmd.PyCmdMessenger.CmdMessenger) -> Callable[[],None]:
+def motorStatusMonitor(app: aj.appjar.gui, Messenger: cmd.PyCmdMessenger.CmdMessenger, magSensor: Union[Sensors.I2CDevice, Sensors.HMC5883L]=None) -> Callable[[],None]:
+    """
+    Creates a callback that will update the GUI's status monitor with
+    Args:
+        app:
+        Messenger:
+        magSensor (Union[Sensors.I2CDevice, Sensors.HMC5883L]): What sensor to use to update the data, if any. If set to None, then skip the comparisons.
+
+    Returns:
+        getStatus (Callable[[],None]): A function that updates the status monitor's information based on the information it receives.
+
+    """
     def getStatus()->None:
+        """
+        Updates the status panel with the current information
+        Returns:
+            Nothing, this is a side-effect only function.
+        """
         nonlocal Messenger
         nonlocal app
+        nonlocal magSensor
         # Ask for the current status of the motor
         t = Control.sendCommand(Messenger, "kStatus")
         d = {t[1][0]: t[1][1], t[1][2]: t[1][3]}  # parse the response
@@ -43,21 +81,52 @@ def motorStatusMonitor(app: aj.appjar.gui, Messenger: cmd.PyCmdMessenger.CmdMess
         app.openLabelFrame("Status")
         app.setLabel("motorStatus",
                      f"Motor A: \t {get('A', d, '???')}\nMotor B: \t {get('B', d, '???')}")
-
+        if magSensor is not None:
+            app.setLabel("CurrentBearing", f"Current Bearing is: {appGetBearing(magSensor, numSamples=50, pollRate=75):.3f}°")
     return getStatus
 
 
 def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMessenger, *rest, MotorDefaultTime=1000,
          fullscreen=False, sensing=True) -> None:
-    """Demo"""
+    """
 
-    def _close(app_, arduino_) -> bool:
+    Args:
+        board (cmd.arduino.ArduinoBoard): what arduino object shuold we use?
+        Messenger (cmd.PyCmdMessenger.CmdMessenger): What Messenger object is to be used?
+        *rest: ignored.
+        MotorDefaultTime (int): How long (in ms) should a motor be turned on if we press the button?
+        fullscreen (bool): Should the app start in fullscreen mode?
+        sensing (bool): Should we use the sensors?
+
+    Returns:
+        None, this is the main function that accesses the GUI.
+    """
+
+    def _close(app_: aj.appjar.gui, arduino_: cmd.arduino.ArduinoBoard) -> bool:
+        """
+
+        Args:
+            app_ (aj.appjar.gui): get the main app object
+            arduino_ (cmd.arduino.ArduinoBoard): get the main Arduino object.
+
+        Returns:
+            res (bool): Should we close the box or not? (True for Yes, False for No)
+        """
         res = app_.yesNoBox("Confirm Exit", "Are you sure you want to exit?")
         if res:
             arduino_.close()
         return res
 
     def offBoth(*args, **kwargs) -> None:  # define a local function to turn off both motors
+        """
+        Sends a force off command to all motors and resets the radio buttons.
+        Args:
+            *args: ignored
+            **kwargs: ignored
+
+        Returns:
+            None, this is a side-effect only function.
+        """
         _0 = Control.sendCommand(Messenger, "kMotorOff", "A")
         del _0
         _1 = Control.sendCommand(Messenger, "kMotorOff", "B")
@@ -68,7 +137,15 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
         app.setRadioButton("BRControl", "Default", callFunction=False)
 
 
-    def motorRadioButtonChanged(button):
+    def motorRadioButtonChanged(button: Text) -> List[Union[Text, int, float, bool]]:
+        """
+
+        Args:
+            button (Text): What appjar button are we listening for?
+
+        Returns:
+            response (List[Union[Text, int, float, bool]): The response we get back from the arduino board.
+        """
         state = app.getRadioButton(button)
         if state == "Default":
             response = Control.sendCommand(Messenger, "kMotorOff", button[0])
@@ -233,7 +310,10 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
     app.stopTabbedFrame()
     print("Registering Events")
     # Keep the status monitor commented out for now, it polls too frequently and blocks UI
-    # app.registerEvent(motorStatusMonitor(app, Messenger)) # listen for the status changes
+    # if sensing:
+        # app.registerEvent(motorStatusMonitor(app, Messenger, magSensor=magSensor)) # listen for the status changes
+    # else:
+        # app.registerEvent(motorStatusMonitor(app, Messenger)) # Listen for status changes, no sensors.
     app.registerEvent(lambda: UI.colorMode(app, "colorMode"))  # Listen for changes to the colormode buttons
 
     app.setStopFunction(lambda *a: _close(app, board))

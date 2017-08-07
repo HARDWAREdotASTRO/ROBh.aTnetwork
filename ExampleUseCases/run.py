@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import Robhat.Dome as Dome
 import threading
 import os

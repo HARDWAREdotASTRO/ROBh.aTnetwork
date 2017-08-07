@@ -1,15 +1,18 @@
+# -*- coding: utf-8 -*-
+
 import appJar as aj
 from typing import Any, Text, Dict, Tuple, Callable, NewType
 from toolz.curried import curry
 
-ButtonType = NewType('ButtonType', Tuple[Text, Callable[[], Any]])
-
-global BUTTONS
-BUTTONS = dict()  # type: Dict[Text, ButtonType]
-
-
 @curry
 def colorMode(app: aj.appjar.gui, button: Text )-> None:
+    """
+    Changes the color mode of the app. NOT CURRENTLY IMPLEMENTED
+    Args:
+        app (aj.appjar.gui): what app object to manipulate
+        button (Text): which button to get
+
+    """
     mode = app.getRadioButton(button)
     if mode == "Night":
         # app.setBg("#B71C1C")
@@ -21,11 +24,19 @@ def colorMode(app: aj.appjar.gui, button: Text )-> None:
         pass
 
 
-def makeUI(*, size: Tuple = (720,480), fullscreen: bool = False) -> aj.appjar.gui:
+def makeUI(*, size: Tuple[int,int] = (720,480), fullscreen: bool = False) -> aj.appjar.gui:
+    """
+    Makes an object that represents the GUI.
+    Args:
+        size Tuple[int, int]: The size of the screen
+        fullscreen (bool): Should the app start in fullscreen mode?
+
+    Returns:
+        app (aj.appjar.gui): The main app object.
+    """
     """
     Main function that creates the UI, requires size or fulscreen to be passed as a keyword argument
     """
-    global BUTTONS
     try:
         assert size or fullscreen
     except AssertionError as Err:

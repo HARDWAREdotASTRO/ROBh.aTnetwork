@@ -23,9 +23,17 @@ setup(
         "numpy>=1.13.1",
         "scipy>=0.19.0",
         "smbus2>=0.1.5",
-        "FakeRPi",
+        # "FakeRPi",
     ],
-    dependency_links=["git+https://github.com/sn4k3/FakeRPi"],
+    extras_require={
+        'dev': [
+            'sphinx', 
+            'recommonmark',
+            'sphinx_bootstrap_theme',
+            'sphinx-autobuild'
+            ]
+    },                
+    dependency_links=["https://github.com/sn4k3/FakeRPi/tarball/master#egg=FakeRPi"],
     python_requires='>=3.6',
     long_description=readme(),
     packages=["Robhat", "Robhat.Dome", "Robhat.Dome.UI", "Robhat.Dome.Control", "Robhat.Dome.Macros"],

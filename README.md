@@ -24,6 +24,7 @@ Example use case is given in `ExampleUseCases/run.py`
 * Use Python 3.6
 * Use PEP484 Type Hints for ALL functions
 * All functions **must** have a docstring
+* Use [Google Docstring](http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) format
 * Spacing: **Four Spaces**. Just use spaces.
 * Variables and functions are named in `camelCase`
 * Classes, Modules, etc. are named with `UpperCamelCase`
