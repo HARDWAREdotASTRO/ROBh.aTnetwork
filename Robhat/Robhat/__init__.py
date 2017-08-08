@@ -1,4 +1,6 @@
-__all__ = ["Data", "Dome", "Dome.UI", "Dome.Sensors", "Dome.Control", "Dome.Macros", "Robhat"]
-
-from . import Dome
-from . import Data
+import Robhat.Dome
+import Robhat.Data
+import Robhat.Dome.Control
+import Robhat.Dome.Macros
+import Robhat.Dome.Sensors
+import Robhat.Dome.UI

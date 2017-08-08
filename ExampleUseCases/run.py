@@ -19,6 +19,12 @@ global ThreadingQ
 
 ThreadingQ = True
 
+# SensingQ:
+# False = No Sensors
+# True = Sensors used
+
+SensingQ = False
+
 Config = Dome.readConfig(configFile="./.config")
 Port = Config["SerialPort"]
 PollTime = Config["PollTime"]
@@ -31,9 +37,9 @@ try:
     arduino = Dome.Control.startBoard(Port, BaudRate, dtr=False)
     messenger = Dome.Control.startMessenger(arduino, Dome.Control.COMMANDS)
     if ThreadingQ:
-        Dome.demo(arduino, messenger, MotorDefaultTime=PollTime, sensing=False)
+        Dome.demo(arduino, messenger, MotorDefaultTime=PollTime, sensing=SensingQ)
     else:
-        UIThread = threading.Thread(name="UI", target=Dome.demo, args=(arduino, messenger), kwargs={"MotorDefaultTime":PollTime, "sensing": False}, daemon=True)
+        UIThread = threading.Thread(name="UI", target=Dome.demo, args=(arduino, messenger), kwargs={"MotorDefaultTime":PollTime, "sensing": SensingQ}, daemon=True)
         UIThread.start()
         UIThread.join()
 

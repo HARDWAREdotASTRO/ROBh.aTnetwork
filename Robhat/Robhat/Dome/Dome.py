@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-from . import Control, UI, Macros, Sensors
+from . import Sensors
+from . import Control
+from . import UI
+from . import Macros
 from .. import Data
 from typing import Dict, Text, Any, List, Tuple, Callable, Union, NewType
 from toolz.curried import get, merge
@@ -8,13 +11,15 @@ from math import ceil
 import PyCmdMessenger as cmd
 import configparser
 import scipy.stats
+import sys
 
 try:
     import smbus2 as smbus
 except:
     pass
 
-def readConfig(configFile: Text = "./.config") -> Dict[Text, Union[Text, float, int]]:
+
+def readConfig(configFile: Text="./.config") -> Dict[Text, Union[Text, float, int]]:
     """
     Reads a configuration file.
 
@@ -35,9 +40,13 @@ def readConfig(configFile: Text = "./.config") -> Dict[Text, Union[Text, float, 
     settings = merge(dict(config["DEFAULT"].items()), settings)
     return settings
 
-def appGetBearing(sensor: Union[Sensors.I2CDevice, Sensors.HMC5883L], numSamples: int=75, pollRate: int=75, pin=4, pinTrigger=False) -> float:
+
+def appGetBearing(
+        sensor: Union[Sensors.I2CDevice, Sensors.HMC5883L],
+        numSamples: int=75, pollRate: int=75, pin=4, pinTrigger=False) -> float:
     """
     Gets the current bearing of the sensor provided as the first argument.
+
     Args:
         sensor (Union[Sensors.I2CDevice, Sensors.HMC5883L]): the sensor device that needs to be polled
         numSamples (int): how many samples should we get?
@@ -49,25 +58,34 @@ def appGetBearing(sensor: Union[Sensors.I2CDevice, Sensors.HMC5883L], numSamples
         A float between 0.0 and 360.0 which is the circular average of the boxcar[n=5]-circular average of the data read.
 
     """
-    data = Sensors.getTimedData(getMethod=sensor.getBearing, numSamples=numSamples, pollRate=pollRate, pin=pin, pinTrigger=pinTrigger)
-    averages, *rest = Data.boxcar(data, carlength=5, func=lambda x: scipy.stats.circmean(x, low=0, high=360))
+    data = Sensors.getTimedData(
+        getMethod=sensor.getBearing, numSamples=numSamples, pollRate=pollRate,
+        pin=pin, pinTrigger=pinTrigger)
+    averages, *rest = Data.boxcar(data, carlength=5,
+                                  func=lambda x: scipy.stats.circmean(
+                                      x, low=0, high=360))
     return scipy.stats.circmean(averages[:-5], low=0, high=360)
 
-def motorStatusMonitor(app: aj.appjar.gui, Messenger: cmd.PyCmdMessenger.CmdMessenger, magSensor: Union[Sensors.I2CDevice, Sensors.HMC5883L]=None) -> Callable[[],None]:
+
+def motorStatusMonitor(
+        app: aj.appjar.gui, Messenger: cmd.PyCmdMessenger.CmdMessenger,
+        magSensor: Union[Sensors.I2CDevice, Sensors.HMC5883L]=None) -> Callable[[], None]:
     """
-    Creates a callback that will update the GUI's status monitor with
+    Creates a callback that will update the GUI's status monitor with information.
+
     Args:
-        app:
-        Messenger:
+        app (aj.appjar.gui): What app interface to use?
+        Messenger (cmd.PyCmdMessenger.CmdMessenger): Which messenger object to use?
         magSensor (Union[Sensors.I2CDevice, Sensors.HMC5883L]): What sensor to use to update the data, if any. If set to None, then skip the comparisons.
 
     Returns:
         getStatus (Callable[[],None]): A function that updates the status monitor's information based on the information it receives.
 
     """
-    def getStatus()->None:
+    def getStatus() -> None:
         """
         Updates the status panel with the current information
+
         Returns:
             Nothing, this is a side-effect only function.
         """
@@ -79,15 +97,19 @@ def motorStatusMonitor(app: aj.appjar.gui, Messenger: cmd.PyCmdMessenger.CmdMess
         d = {t[1][0]: t[1][1], t[1][2]: t[1][3]}  # parse the response
         app.openTab("Main", "Control")
         app.openLabelFrame("Status")
-        app.setLabel("motorStatus",
-                     f"Motor A: \t {get('A', d, '???')}\nMotor B: \t {get('B', d, '???')}")
+        app.setLabel(
+            "motorStatus",
+            f"Motor A: \t {get('A', d, '???')}\nMotor B: \t {get('B', d, '???')}")
         if magSensor is not None:
-            app.setLabel("CurrentBearing", f"Current Bearing is: {appGetBearing(magSensor, numSamples=50, pollRate=75):.3f}°")
+            app.setLabel(
+                "CurrentBearing",
+                f"Current Bearing is: {appGetBearing(magSensor, numSamples=50, pollRate=75):.3f}°")
     return getStatus
 
 
-def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMessenger, *rest, MotorDefaultTime=1000,
-         fullscreen=False, sensing=True) -> None:
+def demo(board: cmd.arduino.ArduinoBoard,
+         Messenger: cmd.PyCmdMessenger.CmdMessenger, *rest,
+         MotorDefaultTime=1000, fullscreen=False, sensing=True) ->None:
     """
 
     Args:
@@ -112,14 +134,16 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
         Returns:
             res (bool): Should we close the box or not? (True for Yes, False for No)
         """
-        res = app_.yesNoBox("Confirm Exit", "Are you sure you want to exit?")
-        if res:
+        # res = app_.yesNoBox("Confirm Exit", "Are you sure you want to exit?")
+        if True:#res:
             arduino_.close()
+            sys.exit()
         return res
 
     def offBoth(*args, **kwargs) -> None:  # define a local function to turn off both motors
         """
         Sends a force off command to all motors and resets the radio buttons.
+
         Args:
             *args: ignored
             **kwargs: ignored
@@ -135,7 +159,6 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
         app.setRadioButton("ARControl", "Default", callFunction=False)
         app.setRadioButton("BFControl", "Default", callFunction=False)
         app.setRadioButton("BRControl", "Default", callFunction=False)
-
 
     def motorRadioButtonChanged(button: Text) -> List[Union[Text, int, float, bool]]:
         """
@@ -155,23 +178,31 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
         else:
             val = "Off"
         if button.startswith("A"):
-            if val=="On":
-                if button[1]=="F":
-                    app.setRadioButton("ARControl", "Default", callFunction=False)
-                    response = Control.sendCommand(Messenger, "kMotorStayOn", "A", "F")
-                elif button[1]=="R":
-                    app.setRadioButton("AFControl", "Default", callFunction=False)
-                    response = Control.sendCommand(Messenger, "kMotorStayOn", "A", "R")
+            if val == "On":
+                if button[1] == "F":
+                    app.setRadioButton(
+                        "ARControl", "Default", callFunction=False)
+                    response = Control.sendCommand(
+                        Messenger, "kMotorStayOn", "A", "F")
+                elif button[1] == "R":
+                    app.setRadioButton(
+                        "AFControl", "Default", callFunction=False)
+                    response = Control.sendCommand(
+                        Messenger, "kMotorStayOn", "A", "R")
             else:
                 Control.sendCommand(Messenger, "kMotorOff", "A")
         if button.startswith("B"):
             if val == "On":
                 if button[1] == "F":
-                    app.setRadioButton("BRControl", "Default", callFunction=False)
-                    response = Control.sendCommand(Messenger, "kMotorStayOn", "B", "F")
+                    app.setRadioButton(
+                        "BRControl", "Default", callFunction=False)
+                    response = Control.sendCommand(
+                        Messenger, "kMotorStayOn", "B", "F")
                 elif button[1] == "R":
-                    app.setRadioButton("BFControl", "Default", callFunction=False)
-                    response = Control.sendCommand(Messenger, "kMotorStayOn", "B", "R")
+                    app.setRadioButton(
+                        "BFControl", "Default", callFunction=False)
+                    response = Control.sendCommand(
+                        Messenger, "kMotorStayOn", "B", "R")
             else:
                 response = Control.sendCommand(Messenger, "kMotorOff", "B")
         return response
@@ -197,79 +228,86 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
     print("making status panel")
     app.addLabel("motorStatus", "Motor A: \t ??? \nMotor B: \t ???", 0, 0)
     if sensing:
-        app.addLabel("CurrentBearing", f"Current Bearing is: {appGetBearing(magSensor, numSamples=50, pollRate=75):.3f}°")
-
+        app.addLabel(
+            "CurrentBearing",
+            f"Current Bearing is: {appGetBearing(magSensor, numSamples=50, pollRate=75):.3f}°")
 
     app.addButton(  # make me a button that turns off the motors!
-            "offBoth",
-            offBoth,
-            3, 0, colspan=1, rowspan=1)
+        "offBoth",
+        offBoth,
+        3, 0, colspan=1, rowspan=1)
     app.stopLabelFrame()
 
     app.startLabelFrame("A", 1, 0, rowspan=2, colspan=1)
     print("making A")
     app.setSticky("nesw")
     app.setStretch("both")
-    app.addButton("onAF", lambda *a: Control.sendCommand(Messenger, "kMotorOn", "A", "F", MotorDefaultTime), 0, 0)
-    app.addButton("onAR", lambda *a: Control.sendCommand(Messenger, "kMotorOn", "A", "R", MotorDefaultTime), 0, 1)
-    app.addButton("offA", lambda *a: Control.sendCommand(Messenger, "kMotorOff", "A"), 1, 0, colspan=2, rowspan=1)
-
-
-    app.stopLabelFrame()
-
-    app.startLabelFrame("ForcingA", 3,0, colspan=1, rowspan=2)
-
-    app.startLabelFrame("AForward", 0, 0, colspan=1, rowspan=2)
-    app.addRadioButton("AFControl", "Default")
-    app.addRadioButton("AFControl", "FOn")
-    app.addRadioButton("AFControl", "FOff")
-    app.setRadioButton("AFControl", "Default", callFunction=False)
-    app.setRadioButtonChangeFunction("AFControl", motorRadioButtonChanged )
-    app.stopLabelFrame()
-
-    app.startLabelFrame("AReverse", 0, 1, colspan=1, rowspan=2)
-    app.addRadioButton("ARControl", "Default")
-    app.addRadioButton("ARControl", "FOn")
-    app.addRadioButton("ARControl", "FOff")
-    app.setRadioButton("ARControl", "Default", callFunction=False)
-    app.setRadioButtonChangeFunction("ARControl", motorRadioButtonChanged)
-    app.stopLabelFrame()
+    app.addButton("onAF", lambda *a: Control.sendCommand(Messenger,
+                                                         "kMotorOn", "A", "F", MotorDefaultTime), 0, 0)
+    app.addButton("onAR", lambda *a: Control.sendCommand(Messenger,
+                                                         "kMotorOn", "A", "R", MotorDefaultTime), 0, 1)
+    app.addButton(
+        "offA", lambda * a: Control.sendCommand(Messenger, "kMotorOff", "A"),
+        1, 0, colspan=2, rowspan=1)
 
     app.stopLabelFrame()
 
+    # app.startLabelFrame("ForcingA", 3, 0, colspan=1, rowspan=2)
+    # 
+    # app.startLabelFrame("AForward", 0, 0, colspan=1, rowspan=2)
+    # app.addRadioButton("AFControl", "Default")
+    # app.addRadioButton("AFControl", "FOn")
+    # app.addRadioButton("AFControl", "FOff")
+    # app.setRadioButton("AFControl", "Default", callFunction=False)
+    # app.setRadioButtonChangeFunction("AFControl", motorRadioButtonChanged)
+    # app.stopLabelFrame()
+    # 
+    # app.startLabelFrame("AReverse", 0, 1, colspan=1, rowspan=2)
+    # app.addRadioButton("ARControl", "Default")
+    # app.addRadioButton("ARControl", "FOn")
+    # app.addRadioButton("ARControl", "FOff")
+    # app.setRadioButton("ARControl", "Default", callFunction=False)
+    # app.setRadioButtonChangeFunction("ARControl", motorRadioButtonChanged)
+    # app.stopLabelFrame()
+    # 
+    # app.stopLabelFrame()
 
     app.startLabelFrame("B", 1, 2, rowspan=2, colspan=1)
     print("making B")
     app.setSticky("nesw")
     app.setStretch("both")
-    app.addButton("onBF", lambda *a: Control.sendCommand(Messenger, "kMotorOn", "B", "F", MotorDefaultTime), 0, 0)
-    app.addButton("onBR", lambda *a: Control.sendCommand(Messenger, "kMotorOn", "B", "R", MotorDefaultTime), 0, 1)
-    app.addButton("offB", lambda *a: Control.sendCommand(Messenger, "kMotorOff", "B"), 1, 0, colspan=2, rowspan=1)
+    app.addButton("onBF", lambda *a: Control.sendCommand(Messenger,
+                                                         "kMotorOn", "B", "F", MotorDefaultTime), 0, 0)
+    app.addButton("onBR", lambda *a: Control.sendCommand(Messenger,
+                                                         "kMotorOn", "B", "R", MotorDefaultTime), 0, 1)
+    app.addButton(
+        "offB", lambda * a: Control.sendCommand(Messenger, "kMotorOff", "B"),
+        1, 0, colspan=2, rowspan=1)
     app.stopLabelFrame()
 
-    app.startLabelFrame("ForcingB", 3, 2, colspan=1, rowspan=2)
+    # app.startLabelFrame("ForcingB", 3, 2, colspan=1, rowspan=2)
 
-    app.startLabelFrame("BForward", 0, 0, colspan=1, rowspan=2)
-    app.setSticky("nesw")
-    app.setStretch("both")
-    app.addRadioButton("BFControl", "Default")
-    app.addRadioButton("BFControl", "FOn")
-    app.addRadioButton("BFControl", "FOff")
-    app.setRadioButton("BFControl", "Default", callFunction=False)
-    app.setRadioButtonChangeFunction("BFControl", motorRadioButtonChanged)
-    app.stopLabelFrame()
-
-    app.startLabelFrame("BReverse", 0, 1, colspan=1, rowspan=2)
-    app.setSticky("nesw")
-    app.setStretch("both")
-    app.addRadioButton("BRControl", "Default")
-    app.addRadioButton("BRControl", "Force On")
-    app.addRadioButton("BRControl", "Force Off")
-    app.setRadioButton("BRControl", "Default", callFunction=False)
-    app.setRadioButtonChangeFunction("BRControl", motorRadioButtonChanged)
-    app.stopLabelFrame()
-
-    app.stopLabelFrame()
+    # app.startLabelFrame("BForward", 0, 0, colspan=1, rowspan=2)
+    # app.setSticky("nesw")
+    # app.setStretch("both")
+    # app.addRadioButton("BFControl", "Default")
+    # app.addRadioButton("BFControl", "FOn")
+    # app.addRadioButton("BFControl", "FOff")
+    # app.setRadioButton("BFControl", "Default", callFunction=False)
+    # app.setRadioButtonChangeFunction("BFControl", motorRadioButtonChanged)
+    # app.stopLabelFrame()
+    # 
+    # app.startLabelFrame("BReverse", 0, 1, colspan=1, rowspan=2)
+    # app.setSticky("nesw")
+    # app.setStretch("both")
+    # app.addRadioButton("BRControl", "Default")
+    # app.addRadioButton("BRControl", "Force On")
+    # app.addRadioButton("BRControl", "Force Off")
+    # app.setRadioButton("BRControl", "Default", callFunction=False)
+    # app.setRadioButtonChangeFunction("BRControl", motorRadioButtonChanged)
+    # app.stopLabelFrame()
+    # 
+    # app.stopLabelFrame()
 
     app.stopTab()
 
@@ -278,18 +316,20 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
     app.setSticky("nesw")
     app.setStretch("both")
 
-    app.startLabelFrame("Defaults", 0,0, rowspan=2, colspan=2)
+    app.startLabelFrame("Defaults", 0, 0, rowspan=2, colspan=2)
     app.setSticky("nesw")
     app.setStretch("both")
-    app.addButton("Store", lambda *args: None, 0,0, rowspan=1, colspan=2)
-    app.addButton("Home", lambda *args: None, 1,0, rowspan=1, colspan=2)
+    app.addButton("Store", lambda *args: None, 0, 0, rowspan=1, colspan=2)
+    app.addButton("Home", lambda *args: None, 1, 0, rowspan=1, colspan=2)
     app.stopLabelFrame()
 
     app.startLabelFrame("GUI", 0, 2, rowspan=2, colspan=2)
     app.setSticky("nesw")
     app.setStretch("both")
-    app.addButton("Refresh", lambda *args: None, 0,0, rowspan=1, colspan=2)
-    app.addButton("Exit", lambda *args: _close(app, arduino), 1,0, rowspan=1, colspan=2)
+    app.addButton("Refresh", lambda *args: None, 0, 0, rowspan=1, colspan=2)
+    app.addButton(
+        "Exit", lambda *args: _close(app, board),
+        1, 0, rowspan=1, colspan=2)
     app.stopLabelFrame()
 
     app.stopTab()
@@ -311,10 +351,11 @@ def demo(board: cmd.arduino.ArduinoBoard, Messenger: cmd.PyCmdMessenger.CmdMesse
     print("Registering Events")
     # Keep the status monitor commented out for now, it polls too frequently and blocks UI
     # if sensing:
-        # app.registerEvent(motorStatusMonitor(app, Messenger, magSensor=magSensor)) # listen for the status changes
+    # app.registerEvent(motorStatusMonitor(app, Messenger, magSensor=magSensor)) # listen for the status changes
     # else:
-        # app.registerEvent(motorStatusMonitor(app, Messenger)) # Listen for status changes, no sensors.
-    app.registerEvent(lambda: UI.colorMode(app, "colorMode"))  # Listen for changes to the colormode buttons
+    # app.registerEvent(motorStatusMonitor(app, Messenger)) # Listen for status changes, no sensors.
+    # Listen for changes to the colormode buttons
+    app.registerEvent(lambda: UI.colorMode(app, "colorMode"))
 
     app.setStopFunction(lambda *a: _close(app, board))
     print("app is alive")

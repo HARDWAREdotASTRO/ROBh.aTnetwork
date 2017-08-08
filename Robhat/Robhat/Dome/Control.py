@@ -14,22 +14,23 @@ from typing import Any, Text, Dict, Sequence, List, Tuple, Callable, Union, NewT
 
 global COMMANDS
 
-COMMANDS = [["kMotorOn","cci"],
+COMMANDS = [["kMotorOn", "cci"],
             ["kMotorStayOn", "cc"],
-            ["kMotorOff","c"],
-            ["kStatus","s*"],
-            ["kAck","s*"],
-            ["kError","s*"],
+            ["kMotorOff", "c"],
+            ["kStatus", "s*"],
+            ["kAck", "s*"],
+            ["kError", "s*"],
             ["kLogging", "s*"]]
-"""List[List[Text]]: 
+"""List[List[Text]]:
     A list of all commands possibly sent/recieved from the Arduino.
     The first slot is the name of the command.
     The second slot is the type-identifier of the command. See PyCmdMessenger's docs for details."""
 
 
-def startBoard(port: Text, baud: int = 9600, *args, dtr: bool = False) ->  cmd.arduino.ArduinoBoard:
+def startBoard(port: Text, baud: int = 9600, *args, dtr: bool = False) -> cmd.arduino.ArduinoBoard:
     """
-    a thin init function that binds to the PyCmdMessenger Arduino board class.
+    A thin init function that binds to the PyCmdMessenger Arduino board class.
+
     Args:
         port (Text): What Serial Port should we bind to?
         baud (int): What's the baud rate?
@@ -47,6 +48,7 @@ def startBoard(port: Text, baud: int = 9600, *args, dtr: bool = False) ->  cmd.a
 def startMessenger(board: cmd.arduino.ArduinoBoard, commands_: List[List[Text]] = COMMANDS) -> cmd.PyCmdMessenger.CmdMessenger:
     """
     Starts up a CmdMessenger session (Thin wrapper around the PyCmdMessenger Messenger class constructor)
+
     Args:
         board (cmd.arduino.ArduinoBoard): What board object does the Messenger need to connect to?
         commands_ (List[List[Text]]): The commands that we need to pass to the Messenger class constructor.
@@ -59,7 +61,8 @@ def startMessenger(board: cmd.arduino.ArduinoBoard, commands_: List[List[Text]] 
 
 def ensureConnected(board: cmd.arduino.ArduinoBoard) -> bool:
     """
-    Assert that the connection is active
+    Asserts that the connection is active
+
     Args:
         board (cmd.arduino.ArduinoBoard): What board to check
 
@@ -105,9 +108,12 @@ def serialMonitor(board: cmd.arduino.ArduinoBoard) -> Generator[Text, None, None
             pass
 
 
-def listen(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: Text, *rest, arg_format: Text = None, tries: int = 250) -> Any:
+def listen(
+        Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: Text,
+        *rest, arg_format: Text=None, tries: int=250) ->Any:
     """
-    Listens for a specific type of response message
+    Listens for a specific type of response message.
+
     Args:
         Messenger (cmd.PyCmdMessenger.CmdMessenger): what messenger object should we use?
         messageIdentifier (Text): What type of message are we listening for?
@@ -119,10 +125,12 @@ def listen(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: Text, 
 
     """
     try:
-        assert any([messageIdentifier in command for command in Messenger.commands])
+        assert any([messageIdentifier in command
+                    for command in Messenger.commands])
         pass
     except:
-        raise ValueError("Message identifier must be a valid command identifier for the Messenger")
+        raise ValueError(
+            "Message identifier must be a valid command identifier for the Messenger")
     while True:
         if arg_format is not None:
             message = Messenger.receive(arg_formats=arg_format)
@@ -137,9 +145,11 @@ def listen(Messenger: cmd.PyCmdMessenger.CmdMessenger, messageIdentifier: Text, 
                 continue
 
 
-def sendCommand(Messenger: cmd.PyCmdMessenger, messageIdentifier: Text, *args) -> List[Union[Text, int, float, bool]]:
+def sendCommand(Messenger: cmd.PyCmdMessenger,
+                messageIdentifier: Text, *args) -> List[Union[Text, int, float, bool]]:
     """
-    Sends a command and returns the response
+    Sends a command and returns the response.
+
     Args:
         Messenger (cmd.PyCmdMessenger.CmdMessenger): what messenger object should we use?
         messageIdentifier (Text): What message type should we send

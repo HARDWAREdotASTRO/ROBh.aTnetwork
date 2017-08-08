@@ -1,12 +1,10 @@
-######
-Robhat
-######
+Robhat package
+==============
+
+Subpackages
+-----------
 
 .. toctree::
-   :maxdepth: 3
-   :caption: Class Contents:
 
-   Data
-   Dome
-
-
+    Robhat.Data
+    Robhat.Dome
