@@ -5,6 +5,7 @@ from typing import Text
 def readme() -> Text:
     with open("README.md") as f:
         return f.read()
+
 if __name__=="__main__":
     setup(
         name='Robhat',
@@ -34,6 +35,6 @@ if __name__=="__main__":
                 ]
         },                
         python_requires='>=3.6',
-        long_description=readme(),
+        # long_description=readme(),
         include_package_data=True,
     )
