@@ -25,7 +25,7 @@ ThreadingQ = True
 
 SensingQ = False
 
-Config = Dome.readConfig(configFile="./.config")
+Config = Dome.readConfig(configFile=r"sample.config")
 Port = Config["SerialPort"]
 PollTime = Config["PollTime"]
 BaudRate = Config["BaudRate"]
