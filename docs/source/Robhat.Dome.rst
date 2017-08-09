@@ -19,3 +19,9 @@ Module Contents
     :members:
     :undoc-members:
     :show-inheritance:
+    
+.. automodule:: Robhat.Dome.Dome
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
