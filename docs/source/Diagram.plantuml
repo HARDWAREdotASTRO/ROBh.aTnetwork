@@ -1,0 +1,38 @@
+@startumle
+
+
+
+actor "User" as U #FF2222
+entity "Buttons" as B #99FF99
+participant "GUI" as G
+
+control "Arduino" as A #LightSkyBlue
+participant "Raspberry P" as P #E20B5C
+control Motors as M #229911
+
+autonumber
+
+autonumber 0
+U -> B : Press Buttons
+autonumber 0
+U -> G : Press Buttons
+
+autonumber 1
+B <-> A : Read State of Buttons
+
+autonumber 1
+G -> P : GUI Events
+
+autonumber 2
+P -> A : Commands
+A -> A : Process Commands
+A -> P : Ack
+
+M -> A : Get Current Motor State
+A -> A : Compute Motor State
+A -> M : Write Motor State
+
+A -> P : Send Status
+P -> G: Update Status Display
+
+@enduml

@@ -13,7 +13,8 @@ Welcome to RObh.aT Dome Controller's documentation!
    readme
    Robhat
    modules
-   Style Guide
+   StyleGuide
+   projectsummary
 
 
 Indices and tables

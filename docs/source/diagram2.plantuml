@@ -1,0 +1,42 @@
+@startuml
+@0
+Ard is Ready
+Pi is Ready
+B is Unknown
+G is Alive
+
+@1
+B -> Ard : Get Button State
+B is Known
+Ard is Polling
+G -> Pi : GUI Events
+
+@2
+Ard is Ready
+Pi is Processing
+
+
+@3
+Ard is Waiting
+Pi -> Ard : Commands
+Pi is Waiting
+
+@4
+Ard is Processing
+
+@5
+Ard -> Pi : Ack
+Pi is Ready
+Ard is Active
+
+@6
+Ard -> Pi : Status
+Ard is Ready
+Pi is Processing
+
+@7
+Pi -> G : Update Status
+G is Processing
+B is Unknown
+Pi is Ready
+@enduml
