@@ -24,3 +24,7 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+.. image:: ../../UI.png
+    :width: 70%
+    :alt: How the front page of the GUI looks.
+    :align: center

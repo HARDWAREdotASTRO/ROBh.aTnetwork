@@ -7,6 +7,7 @@
 
 import os
 import sys
+import mock
 
 import sphinx_bootstrap_theme
 from recommonmark.parser import CommonMarkParser
@@ -61,10 +62,12 @@ napoleon_use_rtype = True
 autodoc_mock_imports = [
     "toolz", "toolz.curried","toolz.sandbox.core",
     "toolz.sandbox", "pyserial", "appJar", "numpy",
-    "scipy", "smbus2", "fake_rpi", "RPi",
-    "scipy", "scipy.stats", "pandas", "scipy.interpolate",
+    "scipy", "smbus2", "fake_rpi", "RPi","importlib", "importlib.util",
+    "scipy", "scipy.stats", "pandas", "scipy.interpolate","scipy.interpolate.ndgriddata",
 ]
 
+for mod_name in autodoc_mock_imports:
+    sys.modules[mod_name] = mock.Mock()
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
