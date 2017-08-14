@@ -15,7 +15,7 @@ Welcome to RObh.aT Dome Controller's documentation!
    modules
    StyleGuide
    projectsummary
-
+   DevTutorial
 
 Indices and tables
 ==================

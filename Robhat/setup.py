@@ -28,10 +28,10 @@ if __name__=="__main__":
         ],
         extras_require={
             'dev': [
-                'sphinx', 
-                'recommonmark',
-                'sphinx_bootstrap_theme',
-                'sphinx-autobuild'
+                'sphinx>=1.6.3', 
+                'recommonmark>=0.4.0',
+                'sphinx_bootstrap_theme>=0.5.3',
+                'sphinx-autobuild>=0.6.0'
                 ]
         },                
         python_requires='>=3.6',

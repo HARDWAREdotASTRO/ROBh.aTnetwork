@@ -43,4 +43,4 @@ Example use case is given in `ExampleUseCases/run.py`
 * Big buttons preferred (touch screens)
 * Tabbed displays are preferable to scrolling displays
 
-![Picture of Current UI](https://raw.githubusercontent.com/HARDWAREdotASTRO/ROBh.aTnetwork/master/temp_UI.PNG)
+![Picture of Current UI](https://raw.githubusercontent.com/HARDWAREdotASTRO/ROBh.aTnetwork/master/tUI.png)
